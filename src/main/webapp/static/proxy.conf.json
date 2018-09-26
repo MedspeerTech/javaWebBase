@@ -1,0 +1,27 @@
+{
+    "/api/*": {
+        "target": "http://localhost:9090",
+        "secure": false,
+        "logLevel": "debug"
+    },
+    "/user/*": {
+        "target": "http://localhost:9090",
+        "secure": false,
+        "logLevel": "debug"
+    },
+    "/file/upload": {
+        "target": "http://localhost:9090",
+        "secure": false,
+        "logLevel": "debug"
+    },
+    "/login": {
+        "target": "http://localhost:9090",
+        "secure": false,
+        "logLevel": "debug"
+    },
+    "/login?returnUrl=%2Findex": {
+        "target": "http://localhost:4200",
+        "secure": false,
+        "logLevel": "debug"
+    }
+}
