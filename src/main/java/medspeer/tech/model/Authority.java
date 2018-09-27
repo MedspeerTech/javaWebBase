@@ -12,7 +12,7 @@ public class Authority implements GrantedAuthority {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private UserAuthorities name;
-    @ManyToMany(mappedBy = "authorities")
+    @ManyToMany(mappedBy = "authorities",cascade = CascadeType.ALL)
     private Collection<Role> roles;
 
     public Authority() {

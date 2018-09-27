@@ -1,6 +1,7 @@
 package medspeer.tech.model;
 
 import medspeer.tech.constants.UserRoles;
+import org.springframework.context.annotation.Lazy;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -12,15 +13,16 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private UserRoles name;
-    @ManyToMany(mappedBy = "roles")
+    @ManyToMany(fetch = FetchType.EAGER,mappedBy = "roles", cascade = CascadeType.ALL)
     private Collection<ApplicationUser> users;
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "roles_authorities",
             joinColumns = @JoinColumn(
                     name = "role_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(
                     name = "authority_id", referencedColumnName = "id"))
+    @Lazy
     private Collection<Authority> authorities;
 
     public Role() {
