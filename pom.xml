@@ -6,7 +6,9 @@
 
     <groupId>medspeer.tech</groupId>
     <artifactId>javaWebBase</artifactId>
-    <!--<version>1.0-SNAPSHOT</version>-->
+    <packaging>war</packaging>
+    <version>1.0.${env.BUILD_NUMBER}-RELEASE</version>
+    <name>javaWebBase</name>
 
     <properties>
         <java.version>1.8</java.version>
