@@ -17,9 +17,10 @@ import java.security.Principal;
 public class HomeController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/")
-    public ModelAndView landingPage()
+    public String landingPage()
     {
-        return new ModelAndView("index.html");
+//        return new ModelAndView("index.html");
+        return "java web base";
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/session")
