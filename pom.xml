@@ -193,6 +193,39 @@
         </pluginRepository>
     </pluginRepositories>
 
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+            <build>
+                <finalName>dcGateway</finalName>
+            </build>
+        </profile>
+        <profile>
+            <id>QA</id>
+            <properties>
+                <spring.profiles.active>QA</spring.profiles.active>
+            </properties>
+            <build>
+                <finalName>dcGateway</finalName>
+            </build>
+        </profile>
+        <profile>
+            <id>PROD</id>
+            <properties>
+                <spring.profiles.active>PROD</spring.profiles.active>
+            </properties>
+            <build>
+                <finalName>dcGateway</finalName>
+            </build>
+        </profile>
+    </profiles>
+
 
 
 </project>
