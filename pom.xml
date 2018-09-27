@@ -203,7 +203,7 @@
                 <spring.profiles.active>dev</spring.profiles.active>
             </properties>
             <build>
-                <finalName>dcGateway</finalName>
+                <finalName>javaWebBase</finalName>
             </build>
         </profile>
         <profile>
@@ -212,7 +212,7 @@
                 <spring.profiles.active>QA</spring.profiles.active>
             </properties>
             <build>
-                <finalName>dcGateway</finalName>
+                <finalName>javaWebBase</finalName>
             </build>
         </profile>
         <profile>
@@ -221,7 +221,7 @@
                 <spring.profiles.active>PROD</spring.profiles.active>
             </properties>
             <build>
-                <finalName>dcGateway</finalName>
+                <finalName>javaWebBase</finalName>
             </build>
         </profile>
     </profiles>
