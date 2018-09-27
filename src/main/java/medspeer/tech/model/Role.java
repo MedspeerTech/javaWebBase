@@ -13,9 +13,20 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private UserRoles name;
-    @ManyToMany(fetch = FetchType.EAGER,mappedBy = "roles", cascade = CascadeType.ALL)
+//    @ManyToMany(fetch = FetchType.EAGER,mappedBy = "roles", cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE
+            },
+            mappedBy = "roles")
     private Collection<ApplicationUser> users;
-    @ManyToMany(cascade = CascadeType.ALL)
+
+    @ManyToMany(fetch = FetchType.EAGER,
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE
+            })
     @JoinTable(
             name = "roles_authorities",
             joinColumns = @JoinColumn(

@@ -12,7 +12,13 @@ public class Authority implements GrantedAuthority {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private UserAuthorities name;
-    @ManyToMany(mappedBy = "authorities",cascade = CascadeType.ALL)
+//    @ManyToMany(mappedBy = "authorities",cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE
+            },
+            mappedBy = "authorities")
     private Collection<Role> roles;
 
     public Authority() {

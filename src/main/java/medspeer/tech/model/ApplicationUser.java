@@ -25,7 +25,12 @@ public class ApplicationUser implements UserDetails {
 	private String password;
 	private String email;
 
-	@ManyToMany
+//	@ManyToMany
+@ManyToMany(fetch = FetchType.EAGER,
+		cascade = {
+				CascadeType.PERSIST,
+				CascadeType.MERGE
+		})
 	@JoinTable(
 			name = "users_roles",
 			joinColumns = @JoinColumn(
