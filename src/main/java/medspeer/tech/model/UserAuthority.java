@@ -2,22 +2,21 @@ package medspeer.tech.model;
 
 import org.springframework.security.core.GrantedAuthority;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 /**
  * Created by vishnu on 06/12/17.
  */
 @Entity
+@Table(name = "user_authority")
 public class UserAuthority implements GrantedAuthority {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int userRoleId;
-    /*@ManyToOne
-    @JoinColumn(name="userId", nullable=false)*/
-    private int userId;
+//    @ManyToOne
+//    @JoinColumn(name="id", nullable=false)
+//    private int userId;
     private String userRole;
 
     public int getUserRoleId() {
@@ -28,9 +27,9 @@ public class UserAuthority implements GrantedAuthority {
         this.userRoleId = userRoleId;
     }
 
-    public int getUserId() {
-        return userId;
-    }
+//    public int getUserId() {
+//        return userId;
+//    }
 
     public void setUserId(int userId) {
         userId = userId;

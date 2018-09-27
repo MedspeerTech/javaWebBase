@@ -1,7 +1,7 @@
 package medspeer.tech.model;
 
 
-import org.hibernate.annotations.ColumnDefault;
+import medspeer.tech.constants.UserRoles;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Iterator;
 
 @Entity(name = "user_security")
 public class ApplicationUser implements UserDetails {
@@ -24,23 +24,24 @@ public class ApplicationUser implements UserDetails {
 	@NotNull
 	private String password;
 	private String email;
-	@ColumnDefault(value = "'User'")
-	private String role;
-	private boolean enabled;
+
+	@ManyToMany
+	@JoinTable(
+			name = "users_roles",
+			joinColumns = @JoinColumn(
+					name = "user_id", referencedColumnName = "id"),
+			inverseJoinColumns = @JoinColumn(
+					name = "role_id", referencedColumnName = "id"))
+	private Collection<Role> roles;
+	private boolean enabled = false;
 	private int attempts;
-	@OneToMany(mappedBy = "userId", cascade = CascadeType.ALL)
-	private List<UserAuthority> authorities;
-	private boolean accountNonExpired;
-	private boolean accountNonLocked;
-	private boolean credentialsNonExpired;
+	private boolean accountNonExpired =true;
+	private boolean accountNonLocked =true;
+	private boolean credentialsNonExpired =true;
 
-	/*public String getId() {
-		return id;
-	}
 
-	public void setId(String id) {
-		this.id = id;
-	}*/
+
+
 	public int getId() {
 		return id;
 	}
@@ -57,12 +58,12 @@ public class ApplicationUser implements UserDetails {
 		this.email = email;
 	}
 
-	public String getRole() {
-		return role;
+	public Collection<Role> getRoles() {
+		return roles;
 	}
 
-	public void setRole(String role) {
-		this.role = role;
+	public void setRoles(Collection<Role> roles) {
+		this.roles = roles;
 	}
 
 	public void setEnabled(boolean enabled) {
@@ -96,6 +97,14 @@ public class ApplicationUser implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
+
+		Collection<Authority> authorities=new ArrayList<>();
+		Iterator<Role> itr = this.roles.iterator();
+		while (itr.hasNext()){
+			Role role = itr.next();
+			authorities.addAll(role.getAuthorities());
+		}
+
 		return authorities;
 	}
 
@@ -131,14 +140,16 @@ public class ApplicationUser implements UserDetails {
 	public boolean isCredentialsNonExpired() {
 		return credentialsNonExpired;
 	}
+
 	public void setNewUser(){
         this.accountNonExpired=true;
         this.credentialsNonExpired=true;
         this.accountNonLocked=true;
-        this.authorities=new ArrayList<>();
-        authorities.addAll(authorities);
+        this.roles=new ArrayList<>();
+        Role role=new Role(UserRoles.ROLE_USER);
+        roles.add(role);
         this.username=this.email;
     }
-	
-	
+
+
 }

@@ -40,7 +40,7 @@ export class UserService {
         console.log(user);
         let headers = new Headers();
         headers.append('Content-Type', 'application/json; charset=UTF-8');
-        return this.http.post('/user/signup', user, {headers: headers}).map(
+        return this.http.post('/user/signUp', user, {headers: headers}).map(
             (response: Response) => {
             let data = response.json();
         });
@@ -53,7 +53,7 @@ export class UserService {
         let myParams = new URLSearchParams();
         myParams.set('Username', Username);
         let options = new RequestOptions({ headers: headers, params: myParams });
-        return this.http.get('/user/forgotpassword', options)
+        return this.http.get('/user/forgotPassword', options)
         .map(
             (response: Response) => {
                 let data = response;

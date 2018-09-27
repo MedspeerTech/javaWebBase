@@ -29,6 +29,8 @@ import javax.sql.DataSource;
 
 import static medspeer.tech.config.SecurityConstants.SIGN_UP_URL;
 import static medspeer.tech.config.SecurityConstants.EMAIL_VERIFICATION_URL;
+import static medspeer.tech.config.SecurityConstants.USER_BASE_URL;
+
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -88,8 +90,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .successHandler(authSuccess)
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST, SIGN_UP_URL).permitAll()
-                .antMatchers(HttpMethod.POST, EMAIL_VERIFICATION_URL).permitAll()
+
+                .antMatchers(HttpMethod.POST, USER_BASE_URL).permitAll()
+
+
                 .antMatchers(HttpMethod.GET, "/").permitAll()
                 .antMatchers(HttpMethod.GET, "/login").permitAll()
                 .antMatchers(HttpMethod.GET, "/index").permitAll()
@@ -99,8 +103,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/assets/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/session").permitAll()
                 .antMatchers(HttpMethod.GET, "/backend/api/session").permitAll()
-                .antMatchers(HttpMethod.GET, "/user/setusernamepassword").permitAll()
-                .antMatchers(HttpMethod.GET, "/backend/user/setusernamepassword").permitAll()
+//                .antMatchers(HttpMethod.GET, "/user/setusernamepassword").permitAll()
+//                .antMatchers(HttpMethod.GET, "/backend/user/setusernamepassword").permitAll()
                 .antMatchers(HttpMethod.GET, "/ui/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/error").permitAll()
 

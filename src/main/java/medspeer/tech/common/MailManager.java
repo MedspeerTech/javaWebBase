@@ -53,7 +53,7 @@ public class MailManager {
 //                    message.addAttachment("CoolStuff.doc", new File("CoolStuff.doc"));
                     }
             };
-//            mailSender.send(mm);
+            mailSender.send(mm);
     }
     
     public EMail composeSignupVerificationEmail(Token token) {

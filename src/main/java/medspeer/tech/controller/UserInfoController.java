@@ -24,7 +24,7 @@ public class UserInfoController {
 	@Autowired
 	UserService userService;
 	
-	 @RequestMapping(value = "/uploadProfileImage", method = RequestMethod.POST)
+	@RequestMapping(value = "/uploadProfileImage", method = RequestMethod.POST)
 	public ResponseEntity updateProfileImage(@Valid Principal principal, @RequestParam String imageData) throws IOException{
 		((Authentication) principal).getPrincipal();
 		//ApplicationUser applicationUser=new ApplicationUser();

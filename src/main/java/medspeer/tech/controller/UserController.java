@@ -24,29 +24,27 @@ public class UserController {
 	@Autowired
 	UserService userService;
 	
-	@RequestMapping(value="/signup",method=RequestMethod.POST)
-	public ResponseEntity<ApplicationUser> Signup(@Valid @RequestBody ApplicationUser applicationUser){
-		ApplicationUser newUser=userService.signup(applicationUser);
-		return new ResponseEntity<ApplicationUser>(newUser,HttpStatus.ACCEPTED);
-		/*System.out.println("Welcome spade");
-		return null;*/
+	@RequestMapping(value="/signUp",method=RequestMethod.POST)
+	public ResponseEntity SignUp(@Valid @RequestBody ApplicationUser applicationUser){
+		userService.signUp(applicationUser);
+		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
 
-	@RequestMapping(value="/verifyemail",method=RequestMethod.POST)
+	@RequestMapping(value="/verifyEmail",method=RequestMethod.POST)
 	public ResponseEntity verifyEmail(@Valid @RequestBody Token token) {
 		userService.verifyEmail(token);
 		return new ResponseEntity(HttpStatus.OK);
 		
 	}
 	
-	@RequestMapping(value="/forgotpassword",method=RequestMethod.GET)
+	@RequestMapping(value="/forgotPassword",method=RequestMethod.GET)
 	public ResponseEntity forgotPassword(@Valid @RequestParam String Username) {
-		userService.forgotpassword(Username);
+		userService.forgotPassword(Username);
 		return new ResponseEntity(HttpStatus.OK);
 	}
 
-	@RequestMapping(value="/resetpassword",method=RequestMethod.POST)
-	public ResponseEntity resetPasswore(@Valid @RequestBody PasswordReset passwordReset) {
+	@RequestMapping(value="/resetPassword",method=RequestMethod.POST)
+	public ResponseEntity resetPassword(@Valid @RequestBody PasswordReset passwordReset) {
 		userService.resetPassword(passwordReset);
 		return new ResponseEntity(HttpStatus.ACCEPTED);
 		

@@ -27,14 +27,14 @@ export class LoginCustom {
         login.removeClass('m-login--forget-password');
         login.removeClass('m-login--signin');
 
-        login.addClass('m-login--signup');
+        login.addClass('m-login--signUp');
         (<any>login.find('.m-login__signup')).animateClass('flipInX animated');
     }
 
     static displaySignInForm() {
         let login = $('#m_login');
         login.removeClass('m-login--forget-password');
-        login.removeClass('m-login--signup');
+        login.removeClass('m-login--signUp');
         try {
             $('form').data('validator').resetForm();
         } catch (e) {
@@ -47,7 +47,7 @@ export class LoginCustom {
     static displayForgetPasswordForm() {
         let login = $('#m_login');
         login.removeClass('m-login--signin');
-        login.removeClass('m-login--signup');
+        login.removeClass('m-login--signUp');
 
         login.addClass('m-login--forget-password');
         (<any>login.find('.m-login__forget-password')).animateClass('flipInX animated');
