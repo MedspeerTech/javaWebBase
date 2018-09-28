@@ -26,9 +26,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.sql.DataSource;
-
-import static medspeer.tech.config.SecurityConstants.SIGN_UP_URL;
-import static medspeer.tech.config.SecurityConstants.EMAIL_VERIFICATION_URL;
 import static medspeer.tech.config.SecurityConstants.USER_BASE_URL;
 
 @Configuration
@@ -92,7 +89,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
 
                 .antMatchers(HttpMethod.POST, USER_BASE_URL).permitAll()
-
+                .antMatchers(HttpMethod.GET, USER_BASE_URL).permitAll()
 
                 .antMatchers(HttpMethod.GET, "/").permitAll()
                 .antMatchers(HttpMethod.GET, "/login").permitAll()

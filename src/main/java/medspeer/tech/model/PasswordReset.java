@@ -2,16 +2,19 @@ package medspeer.tech.model;
 
 public class PasswordReset{
 	
-	private String Username;
+	private String username;
 	private String password;
     private String token;
-    
-    public String getUsername() {
-		return Username;
+
+
+	public String getUsername() {
+		return username;
 	}
+
 	public void setUsername(String username) {
-		Username = username;
+		this.username = username;
 	}
+
 	public String getPassword() {
 		return password;
 	}

@@ -38,8 +38,8 @@ public class UserController {
 	}
 	
 	@RequestMapping(value="/forgotPassword",method=RequestMethod.GET)
-	public ResponseEntity forgotPassword(@Valid @RequestParam String Username) {
-		userService.forgotPassword(Username);
+	public ResponseEntity forgotPassword(@Valid @RequestParam String username) {
+		userService.forgotPassword(username);
 		return new ResponseEntity(HttpStatus.OK);
 	}
 
