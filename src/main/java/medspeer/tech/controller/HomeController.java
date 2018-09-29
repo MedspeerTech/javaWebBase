@@ -31,7 +31,7 @@ public class HomeController {
             ResponseObj responseObj = new ResponseObj();
             responseObj.setBody(null);
             responseObj.setStatus(401);
-            return new ResponseEntity(responseObj,HttpStatus.OK);
+            return new ResponseEntity(responseObj,HttpStatus.UNAUTHORIZED);
         }
 
         ResponseObj responseObj = new ResponseObj();
