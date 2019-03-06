@@ -5,6 +5,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -18,10 +20,16 @@ import static medspeer.tech.config.SecurityConstants.TOKEN_PREFIX;
 import static medspeer.tech.config.SecurityConstants.SECRET;
 
 
-public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
+public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
-	public JWTAuthorizationFilter(AuthenticationManager authManager) {
-		super(authManager);
+//	public JWTAuthorizationFilter(AuthenticationManager authManager) {
+//		super(authManager);
+//	}
+
+	public JWTAuthorizationFilter() {
+		
+		super();
+		SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
 	}
 
 	@Override

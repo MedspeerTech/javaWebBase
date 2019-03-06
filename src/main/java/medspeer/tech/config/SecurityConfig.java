@@ -1,10 +1,9 @@
 package medspeer.tech.config;
 
-//import com.google.common.collect.ImmutableList;
-import medspeer.tech.config.security.AuthFailure;
-import medspeer.tech.config.security.AuthSuccess;
-import medspeer.tech.config.security.EntryPointUnAuthorizedHandler;
-import medspeer.tech.config.security.LogoutSuccessHandler;
+import static medspeer.tech.config.SecurityConstants.USER_BASE_URL;
+
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,18 +14,21 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
 //import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.sql.DataSource;
-import static medspeer.tech.config.SecurityConstants.USER_BASE_URL;
+//import com.google.common.collect.ImmutableList;
+import medspeer.tech.config.security.AuthFailure;
+import medspeer.tech.config.security.AuthSuccess;
+import medspeer.tech.config.security.EntryPointUnAuthorizedHandler;
+import medspeer.tech.config.security.LogoutSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -73,11 +75,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-
         		.cors()
         		.and()
         		.csrf()
         		.disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(entryPointUnAuthorizedHandler)
                 .and()
@@ -85,28 +88,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
                 .loginPage("/login")
                 .successHandler(authSuccess)
+                .failureHandler(authFailure)
                 .and()
                 .authorizeRequests()
 
                 .antMatchers(HttpMethod.POST, USER_BASE_URL).permitAll()
                 .antMatchers(HttpMethod.GET, USER_BASE_URL).permitAll()
-
                 .antMatchers(HttpMethod.GET, "/").permitAll()
                 .antMatchers(HttpMethod.GET, "/login").permitAll()
-                .antMatchers(HttpMethod.GET, "/index").permitAll()
-                .antMatchers(HttpMethod.GET, "/test").permitAll()
                 .antMatchers(HttpMethod.GET, "/*.js").permitAll()
                 .antMatchers(HttpMethod.GET, "/*.html").permitAll()
-                .antMatchers(HttpMethod.GET, "/assets/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/session").permitAll()
-                .antMatchers(HttpMethod.GET, "/backend/api/session").permitAll()
-//                .antMatchers(HttpMethod.GET, "/user/setusernamepassword").permitAll()
-//                .antMatchers(HttpMethod.GET, "/backend/user/setusernamepassword").permitAll()
-                .antMatchers(HttpMethod.GET, "/ui/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/error").permitAll()
+                .antMatchers(HttpMethod.GET, "/constants/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/socialAuth/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/file/video/stream/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/file/getFile").permitAll()
+                .antMatchers(HttpMethod.GET, "/file/get*/**").permitAll()
+//                .antMatchers(HttpMethod.GET, "/file/getPreview/**").permitAll()
 
 
-                //.antMatchers("/**").permitAll()
+
                 .anyRequest().authenticated()
                 .and()
                 .logout()
@@ -116,15 +118,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .logoutSuccessHandler(logoutSuccessHandler)
                     .permitAll()
                 .and()
-                .addFilter(new JWTAuthenticationFilter(authenticationManager()))
-                .addFilter(new JWTAuthorizationFilter(authenticationManager()));
-
+                .addFilter(this.jwtProcessingFilter())
+                .addFilterAfter(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
                 http.addFilterAfter(new SimpleCORSFilter(), LogoutFilter.class);
 
-                // this disables session creation on Spring Security
-                //.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
+    @Bean
+    JWTAuthenticationFilter jwtProcessingFilter() throws Exception {
+        JWTAuthenticationFilter tokenProcessingFilter = new JWTAuthenticationFilter();
+        tokenProcessingFilter.setAuthenticationManager(authenticationManager());
+        return tokenProcessingFilter;
+    }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -134,6 +139,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authoritiesByUsernameQuery(rolesQuery)
                 .dataSource(dataSource);
     }
+
+//    @Bean(name = "AccessFilter")
+//    AccessFilter createAccessFilter(){
+//        return new AccessFilter();
+//    }
 
 
     @Bean

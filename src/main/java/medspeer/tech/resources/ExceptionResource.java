@@ -18,7 +18,14 @@ public class ExceptionResource {
         this.type = type;
     }
 
-    public MessageType getType() {
+    public ExceptionResource(int status, MessageType type, String message) {
+		
+    	this.message = message;
+        this.type = type;
+        this.status = status;
+	}
+
+	public MessageType getType() {
         return type;
     }
 
