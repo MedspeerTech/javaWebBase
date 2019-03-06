@@ -1,32 +1,42 @@
 package medspeer.tech.model;
 
 
-import medspeer.tech.constants.UserRoles;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.annotations.GenericGenerator;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import medspeer.tech.constants.UserRoles;
 
 @Entity(name = "user_security")
 public class ApplicationUser implements UserDetails {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private int id;
+	@GeneratedValue(generator="system-uuid")
+	@GenericGenerator(name="system-uuid",
+			strategy = "uuid")
+	private String id;
 	@NotNull(message="username.notnull")
 	@Column(unique=true)
 	private String username;
-	@NotNull
 	private String password;
 	private String email;
 
-//	@ManyToMany
-@ManyToMany(fetch = FetchType.EAGER,
+	@ManyToMany(fetch = FetchType.EAGER,
 		cascade = {
 				CascadeType.PERSIST,
 				CascadeType.MERGE
@@ -44,14 +54,38 @@ public class ApplicationUser implements UserDetails {
 	private boolean accountNonLocked =true;
 	private boolean credentialsNonExpired =true;
 
+	public ApplicationUser() {
+	}
 
+//	public ApplicationUser(ApplicationSocialUser applicationSocialUser) {
+//		BeanUtils.copyProperties(applicationSocialUser,this);
+//		this.accountNonExpired=true;
+//		this.credentialsNonExpired=true;
+//		this.accountNonLocked=true;
+//		this.roles=new ArrayList<>();
+//		Role role=new Role(UserRoles.ROLE_USER);
+//		roles.add(role);
+//		this.username=applicationSocialUser.getEmail();
+//	}
+//
+//	public ApplicationUser(SocialUser socialUser, Role role) {
+//		BeanUtils.copyProperties(socialUser,this);
+//		this.accountNonExpired=true;
+//		this.credentialsNonExpired=true;
+//		this.accountNonLocked=true;
+//		this.roles=new ArrayList<>();
+//
+//		roles.add(role);
+//		this.username=socialUser.getEmail();
+//
+//
+//	}
 
-
-	public int getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 

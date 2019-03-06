@@ -4,5 +4,5 @@ package medspeer.tech.constants;
  * Created by vishnu on 10/5/16.
  */
 public enum MessageType {
-    SUCCESS, INFO, WARNING, ERROR
+    SUCCESS, INFO, WARNING, ERROR, FAILURE
 }
