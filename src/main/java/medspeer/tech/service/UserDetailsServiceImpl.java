@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import static java.util.Collections.emptyList;
 
+import java.util.Optional;
+
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 	private ApplicationUserRepository applicationUserRepository;
@@ -26,5 +28,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		}
 //		return new User(applicationUser.getUsername(), applicationUser.getPassword(), applicationUser.isEnabled(),applicationUser.isAccountNonExpired(),applicationUser.isCredentialsNonExpired(),applicationUser.isAccountNonLocked(),applicationUser.getAuthorities());
 		return applicationUser;
+	}
+
+	public Optional<ApplicationUser> findById(String id) {
+		// TODO Auto-generated method stub
+		return applicationUserRepository.findById(id);
 	}
 }
