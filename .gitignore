@@ -43,4 +43,5 @@ src/main/webapp/static/dist
 *.classpath
 *.project
 *.settings
+*.factorypath
 /.metadata/
