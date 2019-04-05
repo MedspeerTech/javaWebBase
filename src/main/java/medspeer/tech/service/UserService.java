@@ -9,6 +9,7 @@ import medspeer.tech.common.TimeManager;
 import medspeer.tech.common.TokenManager;
 import medspeer.tech.common.TokenType;
 import medspeer.tech.constants.UserRoles;
+import medspeer.tech.exception.FileException;
 import medspeer.tech.exception.TokenException;
 import medspeer.tech.repository.RoleJPARepository;
 import medspeer.tech.repository.TokenJpaRepository;
@@ -61,7 +62,7 @@ public class UserService {
 	@Autowired
 	public UserService(UserJpaRepository userJpaRepository, RoleJPARepository roleJPARepository,
 			TokenManager tokenManager, TokenJpaRepository tokenJpaRepository, MailManager mailManager,
-			Integer tokenExpDays) {
+			FileService fileService, UserRepository userRepository, Integer tokenExpDays) {
 
 		this.userJpaRepository = userJpaRepository;
 		this.roleJPARepository = roleJPARepository;
@@ -69,6 +70,8 @@ public class UserService {
 		this.tokenjpaRepository = tokenJpaRepository;
 		this.mailManager = mailManager;
 		this.tokenExpDays = tokenExpDays;
+		this.fileService = fileService;
+		this.userRepository = userRepository;
 
 	}
 
@@ -189,10 +192,18 @@ public class UserService {
 		}
 	}
 
-	public void updateProfileImage(String imageData) {
-		Attachment attachment = new Attachment();
-		attachment.setId(1);
-		attachment.setAttachmentName(fileService.storeImageInStorageLocation(imageData));
-		userRepository.updateProfileImage(attachment);
+	public void updateProfileImage(String imageData) throws Exception {
+
+		if (imageData.length() > 50) {
+			
+			Attachment attachment = new Attachment();
+			attachment.setId(1);
+			attachment.setAttachmentName(fileService.storeImageInStorageLocation(imageData));
+			userRepository.updateProfileImage(attachment);
+			
+		} else {
+
+			throw new FileException("data not valid ");
+		}
 	}
 }

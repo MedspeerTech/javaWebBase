@@ -23,8 +23,15 @@ import org.springframework.web.multipart.MultipartFile;
 import medspeer.tech.model.FileMeta;
 
 @Service
-public class FileService {
+public class FileService {	
 	
+	public FileService(FileRepository fileRepository, String storageLocationPath, String profileLocationUrl) {
+		super();
+		this.fileRepository = fileRepository;
+		this.storageLocationPath = storageLocationPath;
+		this.profileLocationUrl = profileLocationUrl;
+	}
+
 	@Autowired
     FileRepository fileRepository;
 	
@@ -50,13 +57,16 @@ public class FileService {
 
 	public String storeImageInStorageLocation(String imageData) {
 
-		String fileName = UUID.randomUUID().toString() + ".png";
+		String fileName = null;
 
-		String filePath = storageLocationPath + profileLocationUrl + fileName;
+		String filePath = null;
 
 		try {
 
 			imageData = imageData.substring(imageData.indexOf(','), imageData.length());
+			
+			fileName = UUID.randomUUID().toString() + ".png";
+			filePath = storageLocationPath + profileLocationUrl + fileName;
 
 			byte[] imgByteArray = Base64.decodeBase64(imageData.getBytes());
 
@@ -68,7 +78,6 @@ public class FileService {
 		} catch (Exception ex) {
 			logger.error(filePath + "cannot be saved");
 			ex.printStackTrace();
-
 		}
 		return fileName;
 	}
