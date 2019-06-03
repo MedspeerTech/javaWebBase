@@ -52,7 +52,7 @@ public class MailManager {
                             message.setTo(email.getToAddress());
                             message.setSubject(email.getSubject());
                             message.setText(email.getMessage(), true);
-                            message.addAttachment("CoolStuff.doc", new File("CoolStuff.doc"));
+//                            message.addAttachment("CoolStuff.doc", new File("CoolStuff.doc"));
                     }
             };
             
