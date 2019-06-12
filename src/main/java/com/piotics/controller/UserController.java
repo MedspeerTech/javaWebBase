@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.piotics.model.PasswordReset;
 
 import com.piotics.model.ApplicationUser;
+import com.piotics.model.Invitation;
 import com.piotics.service.UserService;
 
 @RestController
@@ -24,6 +25,15 @@ public class UserController {
 	
 	@Autowired
 	UserService userService;
+	
+	
+	@RequestMapping(value = "/invite",method = RequestMethod.POST)
+	public ResponseEntity<Invitation> invite(@RequestBody Invitation invitation) throws Exception{
+		
+		invitation = userService.invite(invitation);
+		
+		return new ResponseEntity<Invitation>(invitation,HttpStatus.OK);
+	}
 	
 	@RequestMapping(value="/signUp",method=RequestMethod.POST)
 	public ResponseEntity SignUp(@Valid @RequestBody ApplicationUser applicationUser){
