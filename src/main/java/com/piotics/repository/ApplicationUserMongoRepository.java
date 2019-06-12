@@ -1,4 +1,4 @@
-package com.piotics.Repository;
+package com.piotics.repository;
 
 import com.piotics.model.ApplicationUser;
 
@@ -11,4 +11,7 @@ public interface ApplicationUserMongoRepository extends MongoRepository<Applicat
 	ApplicationUser findByUsername(String username);
 
 	Optional<ApplicationUser> findById(String id);
+	
+	ApplicationUser findByEmail(String email);
+	ApplicationUser findByPhone(String phone);
 }

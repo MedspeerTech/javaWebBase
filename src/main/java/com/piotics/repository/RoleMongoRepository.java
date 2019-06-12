@@ -1,3 +1,4 @@
+package com.piotics.repository;
 //package com.piotics.Repository;
 //
 //import org.springframework.data.mongodb.repository.MongoRepository;

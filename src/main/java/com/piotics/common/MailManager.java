@@ -38,7 +38,13 @@ public class MailManager {
     
     @Value("${mail.reset.password.message}")
     String resetMailMessage;
-
+    
+    @Value("${mail.invititation.subject}")
+    String invititationMailSubject;
+      
+    @Value("${mail.invitation.message}")
+    String inviteMailMessage;
+    
     @Autowired
     JavaMailSender mailSender;
 
@@ -78,5 +84,14 @@ public class MailManager {
     	return email;
     	
     }
+
+	public EMail composeInviteVerificationEmail(Token token) {
+		String invitationUrl=webUrl + "completeRegistration/" + token.getUsername()+"/"+token.getToken() ;
+    	EMail email=new EMail();
+    	email.setToAddress(token.getUsername());
+    	email.setSubject(invititationMailSubject);
+    	email.setMessage(invitationUrl);
+    	return email;
+	}
 }
 

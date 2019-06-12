@@ -2,23 +2,26 @@ package com.piotics.model;
 
 import java.util.Collection;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.piotics.constants.UserRoles;
+import com.piotics.resources.SocialUser;
 
 @Document(value = "user_security")
 public class ApplicationUser implements UserDetails {
 
 	@Id
 	private String id;
-//	@NotNull(message="username.notnull")
-//	@Column(unique=true)
+
 	private String username;
 	private String password;
 	private String email;
+	private String phone;
+	private String countryCode;
 	private Company company;
 	private UserRoles role;
 	private boolean enabled = false;
@@ -28,6 +31,11 @@ public class ApplicationUser implements UserDetails {
 	private boolean credentialsNonExpired = true;
 
 	public ApplicationUser() {
+	}
+
+	public ApplicationUser(SocialUser socialUser,UserRoles role) {
+		BeanUtils.copyProperties(socialUser, this);
+		this.role =role;
 	}
 
 	public String getId() {
@@ -44,6 +52,22 @@ public class ApplicationUser implements UserDetails {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}	
+	
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getCountryCode() {
+		return countryCode;
+	}
+
+	public void setCountryCode(String countryCode) {
+		this.countryCode = countryCode;
 	}
 
 	public Company getCompany() {
