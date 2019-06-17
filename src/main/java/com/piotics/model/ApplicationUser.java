@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,7 @@ public class ApplicationUser implements UserDetails {
 	@Id
 	private String id;
 
+    @Indexed(unique=true)
 	private String username;
 	private String password;
 	private String email;

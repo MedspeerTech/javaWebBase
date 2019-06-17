@@ -42,12 +42,12 @@ public class UserController {
 		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
 
-//	@RequestMapping(value="/verifyEmail",method=RequestMethod.POST)
-//	public ResponseEntity verifyEmail(@Valid @RequestBody Token token) {
-//		userService.verifyEmail(token);
-//		return new ResponseEntity(HttpStatus.OK);
-//		
-//	}
+	@RequestMapping(value="/verifyEmail",method=RequestMethod.POST)
+	public ResponseEntity verifyEmail(@Valid @RequestBody Token token) {
+		userService.verifyEmail(token);
+		return new ResponseEntity(HttpStatus.OK);
+		
+	}
 	
 //	@RequestMapping(value="/forgotPassword",method=RequestMethod.GET)
 //	public ResponseEntity forgotPassword(@Valid @RequestParam String username) {

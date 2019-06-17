@@ -15,7 +15,6 @@ public class Token {
 	
 	@Id
     private String id;
-
 	private String username;
 	private String token;
     private Date creationDate;
