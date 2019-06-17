@@ -2,6 +2,7 @@ package com.piotics.common;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Date;
 
 import com.piotics.model.Token;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +21,14 @@ public class TokenManager {
 	}
 	
 	public Token getTokenForEmailVerification(String Username) {
-		return new Token(Username,getToken(),TokenType.EMAILVERIFICATION,timeManager.getCurrentTimestamp());
+		Date date = Date.from(timeManager.getCurrentTimestamp().toInstant());
+		return new Token(Username,getToken(),TokenType.EMAILVERIFICATION,date);
 		
 	}
 	
 	public Token getTokenForPasswordReset(String Username) {
-		return new Token(Username,getToken(),TokenType.PASSWORDRESET,timeManager.getCurrentTimestamp());
+		Date date = Date.from(timeManager.getCurrentTimestamp().toInstant());
+		return new Token(Username,getToken(),TokenType.PASSWORDRESET,date);
 		
 	}
 

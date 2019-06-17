@@ -3,6 +3,7 @@ package com.piotics.controller;
 import javax.validation.Valid;
 
 import com.piotics.model.PasswordResetResource;
+import com.piotics.model.SignUpUser;
 import com.piotics.model.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,10 @@ public class UserController {
 		
 		return new ResponseEntity<Invitation>(invitation,HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(value="/signUp",method=RequestMethod.POST)
-	public ResponseEntity SignUp(@Valid @RequestBody ApplicationUser applicationUser){
-		userService.signUp(applicationUser);
+	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser) throws Exception{
+		userService.signUp(signUpUser);
 		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
 
