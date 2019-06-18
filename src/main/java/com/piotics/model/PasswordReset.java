@@ -1,8 +1,15 @@
 package com.piotics.model;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 public class PasswordReset{
 	
+	@NotEmpty
+	@NotNull
 	private String username;
+	@NotEmpty
+	@NotNull
 	private String password;
     private String token;
 

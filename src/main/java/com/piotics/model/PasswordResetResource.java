@@ -2,15 +2,15 @@ package com.piotics.model;
 
 public class PasswordResetResource {
 	
-	private String Username;
+	private String userName;
 	private String password;
-	private String Newpassword;
+	private String newPassword;
 	
-	public String getUsername() {
-		return Username;
+	public String getUserName() {
+		return userName;
 	}
-	public void setUsername(String username) {
-		Username = username;
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
 	public String getPassword() {
 		return password;
@@ -18,11 +18,11 @@ public class PasswordResetResource {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public String getNewpassword() {
-		return Newpassword;
+	public String getNewPassword() {
+		return newPassword;
 	}
-	public void setNewpassword(String newpassword) {
-		Newpassword = newpassword;
+	public void setNewPassword(String newpassword) {
+		this.newPassword = newpassword;
 	}
 
 }

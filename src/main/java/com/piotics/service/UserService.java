@@ -1,27 +1,36 @@
 package com.piotics.service;
 
+import static com.piotics.config.SecurityConstants.*;
+
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.Optional;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.itextpdf.text.pdf.PdfStructTreeController.returnType;
-//import com.google.cloud.Date;
+import com.google.firebase.auth.FirebaseToken;
 import com.piotics.common.MailManager;
 import com.piotics.common.TimeManager;
 import com.piotics.common.TokenManager;
 import com.piotics.common.TokenType;
+import com.piotics.config.JwtTokenProvider;
 import com.piotics.constants.UserRoles;
 import com.piotics.exception.TokenException;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.EMail;
 import com.piotics.model.Invitation;
+import com.piotics.model.PasswordReset;
+import com.piotics.model.PasswordResetResource;
 import com.piotics.model.SignUpUser;
 import com.piotics.model.Token;
 import com.piotics.repository.ApplicationUserMongoRepository;
@@ -51,6 +60,9 @@ public class UserService {
 	TimeManager timeManager;
 	@Autowired
 	MailManager mailManager;
+
+	@Autowired
+	JwtTokenProvider jwtTokenProvider;
 
 //	@Value("#{isInviteRequired}")
 //	@Value("#{new Boolean('${invite.required}'.trim())}")
@@ -248,47 +260,20 @@ public class UserService {
 			ApplicationUser applicationUser = applicationUserMongoRepository.findByEmail(userName);
 			if (applicationUser == null) {
 				applicationUser = applicationUserMongoRepository.findByPhone(userName);
-				if(applicationUser != null) {
+				if (applicationUser != null) {
 					return true;
-				}else {
+				} else {
 					return false;
 				}
-			}else {
+			} else {
 				return true;
 			}
 
-		
 		} else {
 			throw new Exception("username not provided");
 		}
 
 	}
-
-//	public boolean isExistingUser(String userName) throws Exception {
-//
-//		boolean bool = true;
-//
-//		if (userName != null || !userName.isEmpty()) {
-//
-//			ApplicationUser applicationUser = applicationUserMongoRepository.findByEmail(userName);
-//
-//			if (applicationUser == null) {
-//
-//				bool = false;
-//
-//			} else {
-//
-//				applicationUser = applicationUserMongoRepository.findByPhone(userName);
-//
-//				if (applicationUser == null) {
-//
-//					bool = false;
-//				}
-//			}
-//		}
-//
-//		return bool;
-//	}
 
 	boolean isTokenValid(Token dbToken) {
 		ZonedDateTime currentDate = timeManager.getCurrentTimestamp();
@@ -334,5 +319,95 @@ public class UserService {
 
 		return;
 
+	}
+
+	public void forgotPassword(@Valid String username) throws Exception {
+
+		if (isExistingUser(username)) {
+
+			EMail emailToSend = new EMail();
+			Token dbToken = tokenMongoRepository.findByUsernameAndTokenType(username, TokenType.PASSWORDRESET);
+			if (dbToken == null) {
+				Token token = tokenManager.getTokenForPasswordReset(username);
+				tokenMongoRepository.save(token);
+				emailToSend = mailManager.composeForgotPasswordMail(token);
+				mailManager.sendEmail(emailToSend);
+				return;
+			}
+		} else {
+
+			throw new UserException("user not exist");
+		}
+
+	}
+
+	public void resetPassword(@Valid PasswordReset passwordReset) {
+		Token dbToken = tokenMongoRepository.findByUsernameAndTokenType(passwordReset.getUsername(),
+				TokenType.PASSWORDRESET);
+		if (dbToken == null)
+			throw new TokenException("InvalidToken");
+
+		isTokenValid(dbToken);
+		if (!passwordReset.getToken().equals(dbToken.getToken())) {
+			throw new TokenException("InvalidToken");
+		}
+
+		ApplicationUser user = userMongoRepository.findByUsername(passwordReset.getUsername());
+		BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+		user.setPassword(bCryptPasswordEncoder.encode(passwordReset.getPassword()));
+		user.setAccountNonLocked(true);
+		userMongoRepository.save(user);
+
+		tokenMongoRepository.deleteByUsernameAndTokenAndTokenType(passwordReset.getUsername(), passwordReset.getToken(),
+				TokenType.PASSWORDRESET);
+
+	}
+
+	public void changePassword(@Valid PasswordResetResource passwordresetResource) {
+
+		ApplicationUser user = userMongoRepository.findByUsername(passwordresetResource.getUserName());
+		if (user != null) {
+			BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+
+			// check if the password matches
+			if (bCryptPasswordEncoder.matches(passwordresetResource.getPassword(), user.getPassword())) {
+
+				user.setPassword(bCryptPasswordEncoder.encode(passwordresetResource.getNewPassword()));
+				userMongoRepository.save(user);
+			} else {
+
+				throw new UserException("username and password mismatch");
+			}
+		} else {
+			throw new UserException("username not valid");
+		}
+
+	}
+
+	public void verifyIdToken(Authentication authentication, HttpServletResponse res, FirebaseToken decodedToken) {
+
+		ApplicationUser applicationUser = new ApplicationUser();
+		Optional<ApplicationUser> applicationUserOptional = userMongoRepository.findById(decodedToken.getUid());
+
+		if (applicationUserOptional.isPresent()) {
+
+			// user exists. generate JWT
+			applicationUser = applicationUserOptional.get();
+			String token = jwtTokenProvider.generateToken(authentication);
+			res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
+
+		} else {
+			// user not exist. create a new user with given uid
+			// and generate JWT
+
+			applicationUser.setId(decodedToken.getUid());
+			applicationUser.setUsername(decodedToken.getEmail());
+
+			applicationUser = userMongoRepository.save(applicationUser);
+			String token = jwtTokenProvider.generateToken(authentication);
+
+			res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
+
+		}
 	}
 }
