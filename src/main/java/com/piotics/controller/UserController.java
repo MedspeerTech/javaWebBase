@@ -1,5 +1,6 @@
 package com.piotics.controller;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -41,8 +42,8 @@ public class UserController {
 	}
 
 	@RequestMapping(value="/signUp",method=RequestMethod.POST)
-	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser) throws Exception{
-		userService.signUp(signUpUser);
+	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser,HttpServletRequest req) throws Exception{
+		userService.signUp(signUpUser,req);
 		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
 
@@ -71,13 +72,13 @@ public class UserController {
 	}
 	
 	@RequestMapping(value = "/verifyIdToken", method = RequestMethod.POST)
-	public ResponseEntity verifyIdToken(Authentication authentication,@RequestParam String idToken, HttpServletResponse res) throws FirebaseAuthException {
+	public ResponseEntity verifyIdToken(Authentication authentication,@RequestParam String idToken, HttpServletRequest req,HttpServletResponse res) throws FirebaseAuthException {
 		FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
 		String uid = decodedToken.getUid();
 		
 //		String uid = "12333";
 
-		userService.verifyIdToken(authentication,res,decodedToken);
+		userService.verifyIdToken(authentication,res,decodedToken, req);
 //		userService.verifyIdToken(authentication,res,uid);
 
 		return new ResponseEntity(HttpStatus.OK);

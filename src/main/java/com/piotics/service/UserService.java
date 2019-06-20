@@ -8,6 +8,7 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -38,6 +39,8 @@ import com.piotics.repository.InvitationMongoRepository;
 import com.piotics.repository.TokenMongoRepository;
 import com.piotics.repository.UserMongoRepository;
 
+import com.piotics.common.utils.HttpServletRequestUtils;
+
 @Service
 public class UserService {
 
@@ -52,6 +55,9 @@ public class UserService {
 
 	@Autowired
 	InvitationMongoRepository invitationMongoRepository;
+
+	@Autowired
+	HttpServletRequestUtils httpServletRequestUtils;
 
 	@Autowired
 	TokenManager tokenManager;
@@ -71,7 +77,7 @@ public class UserService {
 	@Value("${token.expiration.days}")
 	Integer tokenExpDays;
 
-	public void signUp(SignUpUser signUpUser) throws Exception {
+	public void signUp(SignUpUser signUpUser, HttpServletRequest req) throws Exception {
 
 		ApplicationUser newUser = new ApplicationUser();
 
@@ -86,7 +92,6 @@ public class UserService {
 					newUser.setUsername(signUpUser.getUserName());
 					newUser.setPassword(password);
 					newUser.setRole(UserRoles.ROLE_USER);
-					newUser.setEnabled(true);
 					newUser = userMongoRepository.save(newUser);
 					if (mailManager.isEmail(signUpUser.getUserName())) {
 						newUser.setEmail(signUpUser.getUserName());
@@ -98,18 +103,24 @@ public class UserService {
 						newUser.setEnabled(true);
 						tokenMongoRepository.deleteByUsernameAndTokenAndTokenType(signUpUser.getUserName(),
 								signUpUser.getToken().getToken(), TokenType.INVITATION);
-
 					} else {
 
 						newUser.setEnabled(false);
 						tokenMongoRepository.deleteByUsernameAndTokenType(signUpUser.getUserName(),
 								TokenType.INVITATION);
+						
+						String clientBrowser = httpServletRequestUtils.getClientBrowser(req);
+						boolean remember = Boolean.parseBoolean(req.getHeader("Remember"));
 
-						if (mailManager.isEmail(signUpUser.getUserName())) {
-							Token token = tokenManager.getTokenForEmailVerification(signUpUser.getUserName());
-							tokenMongoRepository.save(token);
-							EMail email = mailManager.composeSignupVerificationEmail(token);
-							mailManager.sendEmail(email);
+						if (!remember || !clientBrowser.contains("Android")||!clientBrowser.contains("IPhone")) {
+							if (mailManager.isEmail(signUpUser.getUserName())) {
+								Token token = tokenManager.getTokenForEmailVerification(signUpUser.getUserName());
+								tokenMongoRepository.save(token);
+								EMail email = mailManager.composeSignupVerificationEmail(token);
+								mailManager.sendEmail(email);
+							}
+						}else {
+							newUser.setEnabled(true);
 						}
 					}
 					newUser = userMongoRepository.save(newUser);
@@ -384,7 +395,8 @@ public class UserService {
 
 	}
 
-	public void verifyIdToken(Authentication authentication, HttpServletResponse res, FirebaseToken decodedToken) {
+	public void verifyIdToken(Authentication authentication, HttpServletResponse res, FirebaseToken decodedToken,
+			HttpServletRequest req) {
 
 		ApplicationUser applicationUser = new ApplicationUser();
 		Optional<ApplicationUser> applicationUserOptional = userMongoRepository.findById(decodedToken.getUid());
@@ -399,15 +411,20 @@ public class UserService {
 		} else {
 			// user not exist. create a new user with given uid
 			// and generate JWT
+			try {
+				SignUpUser signUpUser = new SignUpUser();
+				signUpUser.setUserName(decodedToken.getEmail());
+				signUpUser.setPassword("welcome");
 
-			applicationUser.setId(decodedToken.getUid());
-			applicationUser.setUsername(decodedToken.getEmail());
+				signUp(signUpUser, req);
 
-			applicationUser = userMongoRepository.save(applicationUser);
-			String token = jwtTokenProvider.generateToken(authentication);
+				String token = jwtTokenProvider.generateToken(authentication);
 
-			res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
-
+				res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
+	
 }
