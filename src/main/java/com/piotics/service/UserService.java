@@ -70,9 +70,8 @@ public class UserService {
 	@Autowired
 	JwtTokenProvider jwtTokenProvider;
 
-//	@Value("#{isInviteRequired}")
-//	@Value("#{new Boolean('${invite.required}'.trim())}")
-	private Boolean inviteRequired = true;
+	@Value("${invite.required}")
+	public boolean inviteRequired;
 
 	@Value("${token.expiration.days}")
 	Integer tokenExpDays;

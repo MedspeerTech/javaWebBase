@@ -47,6 +47,12 @@ public class MailManager {
     @Value("${mail.invitation.message}")
     String inviteMailMessage;
     
+    @Value("${spring.mail.admin}")
+	String adminEmail;
+    
+    @Value("${mail.conversion.failure.subject}")
+	String conversionFailureSubject;
+    
     @Autowired
     JavaMailSender mailSender;
 
@@ -107,5 +113,15 @@ public boolean isEmail(String userName) {
             return false;
         }
 	}
+
+public EMail composeConversionFailureNotifcationMail(String mailContent, String id,
+		String sourceLocation) {
+	EMail email = new EMail();
+	email.setToAddress(adminEmail);
+	email.setSubject(conversionFailureSubject);
+	email.setMessage("conversion has been stopped due to some error, while converting "+mailContent
+			+ id + ", Path : " + sourceLocation);
+	return email;
+}
 }
 
