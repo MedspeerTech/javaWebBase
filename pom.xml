@@ -278,6 +278,15 @@
 				<finalName>javaWebBase</finalName>
 			</build>
 		</profile>
+		<profile>
+			<id>CI</id>
+			<properties>
+				<spring.profiles.active>CI</spring.profiles.active>
+			</properties>
+			<build>
+				<finalName>javaWebBase</finalName>
+			</build>
+		</profile>
 	</profiles>
 
 
