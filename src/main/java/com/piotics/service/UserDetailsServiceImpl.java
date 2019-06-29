@@ -2,27 +2,44 @@ package com.piotics.service;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.piotics.repository.ApplicationUserMongoRepository;
+import com.piotics.repository.UserMongoRepository;
+import com.piotics.common.MailManager;
 import com.piotics.model.ApplicationUser;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
-	private ApplicationUserMongoRepository applicationUserMongoRepository;
 
-	public UserDetailsServiceImpl(ApplicationUserMongoRepository applicationUserRepository) {
+	@Autowired
+	MailManager mailManager;
+
+	private UserMongoRepository applicationUserMongoRepository;
+
+	public UserDetailsServiceImpl(UserMongoRepository applicationUserRepository) {
 		this.applicationUserMongoRepository = applicationUserRepository;
 	}
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		ApplicationUser applicationUser = applicationUserMongoRepository.findByUsername(username);
-		if (applicationUser == null) {
-			throw new UsernameNotFoundException(username);
+		
+		ApplicationUser applicationUser = new ApplicationUser();
+		
+		if (mailManager.isEmail(username)) {
+			applicationUser = applicationUserMongoRepository.findByEmail(username);
+			if (applicationUser == null) {
+				throw new UsernameNotFoundException(username);
+			}
+		}else {
+			applicationUser = applicationUserMongoRepository.findByPhone(username);
+			if (applicationUser == null) {
+				throw new UsernameNotFoundException(username);
+			}
 		}
 //		return new User(applicationUser.getUsername(), applicationUser.getPassword(), applicationUser.isEnabled(),applicationUser.isAccountNonExpired(),applicationUser.isCredentialsNonExpired(),applicationUser.isAccountNonLocked(),applicationUser.getAuthorities());
 		return applicationUser;

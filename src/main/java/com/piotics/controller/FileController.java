@@ -90,7 +90,7 @@ public class FileController {
 	}
 
 	@RequestMapping(value = "/getFile/{id}", method = RequestMethod.GET)
-	private byte[] getFile(@PathVariable("id") Integer fileId) {
+	private byte[] getFile(@PathVariable("id") String fileId) {
 
 		return fileService.getFile(fileId);
 	}

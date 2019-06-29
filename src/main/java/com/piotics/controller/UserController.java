@@ -7,6 +7,8 @@ import javax.validation.Valid;
 import com.piotics.model.PasswordResetResource;
 import com.piotics.model.SignUpUser;
 import com.piotics.model.Token;
+import com.piotics.model.UserProfile;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -83,4 +85,25 @@ public class UserController {
 
 		return new ResponseEntity(HttpStatus.OK);
 	}
+	
+	@RequestMapping(value="/editProfile",method=RequestMethod.POST)
+	public ResponseEntity<UserProfile> editProfile(@RequestBody UserProfile userProfile) {
+		userProfile = userService.editProfile(userProfile);
+		return new ResponseEntity<UserProfile>(userProfile,HttpStatus.ACCEPTED);
+	}
+	
+	@RequestMapping(value="/getProfile",method=RequestMethod.GET)
+	public ResponseEntity<UserProfile> getProfile(@RequestParam String id) {
+		UserProfile userProfile = userService.getProfile(id);
+		return new ResponseEntity<UserProfile>(userProfile,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value="/resetMail",method=RequestMethod.POST)
+	public ResponseEntity<UserProfile> resetMail(@RequestBody UserProfile userProfile) throws Exception{
+		userService.resetMail(userProfile);
+		return new ResponseEntity<UserProfile>(HttpStatus.OK);
+	}
+	
+	
+	
 }

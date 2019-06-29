@@ -89,7 +89,7 @@ public class FileService {
 		return updatedFileMeta;
 	}
 
-	private boolean isImageFile(FileMeta file) {
+	public boolean isImageFile(FileMeta file) {
 		String contentType = file.getOriginalContentType();
 		return contentType.equals(FileContentType.jpegImage) || contentType.equals(FileContentType.pngImage)
 				|| contentType.equals(FileContentType.gifImage);
@@ -313,7 +313,7 @@ public class FileService {
 		throw new ResourceNotFoundException();
 	}
 
-	public byte[] getFile(Integer fileId) {
+	public byte[] getFile(String fileId) {
 		Optional<FileMeta> ff = fileMetaMongoRepository.findById(fileId);
 		if (ff.isPresent()) {
 			FileMeta fileMeta = ff.get();
