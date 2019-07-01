@@ -6,15 +6,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import com.piotics.common.TokenType;
 import com.piotics.config.JwtTokenProvider;
 import com.piotics.constants.*;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationSocialUser;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
+import com.piotics.model.Token;
+import com.piotics.model.UserProfile;
 import com.piotics.repository.ApplicationSocialUserMongoRepository;
 import com.piotics.repository.ApplicationUserMongoRepository;
 import com.piotics.repository.InvitationMongoRepository;
+import com.piotics.repository.TokenMongoRepository;
+import com.piotics.repository.UserProfileMongoRepository;
 import com.piotics.resources.SocialUser;
 
 @Service
@@ -32,6 +37,11 @@ public class SocialAuthService {
 	@Autowired
 	InvitationMongoRepository invitationMongoRepository;
 
+	@Autowired
+	UserProfileMongoRepository userProfileMongoRepository;
+
+	@Autowired
+	TokenMongoRepository tokenMongoRepository;
 
 	private ApplicationSocialUser applicationSocialUser;
 	private ApplicationUser applicationUser;
@@ -62,6 +72,12 @@ public class SocialAuthService {
 				newApplicationSocialUser.setId(this.applicationUser.getId());
 				this.applicationSocialUser = applicationSocialUserMongoRepository.save(newApplicationSocialUser);
 
+				UserProfile userProfile = new UserProfile(socialUser.getEmail(), this.applicationUser.getId());
+				userProfileMongoRepository.save(userProfile);
+
+				Token inviteToken = tokenMongoRepository.findByUsernameAndTokenType(socialUser.getEmail(),
+						TokenType.INVITATION);
+				tokenMongoRepository.delete(inviteToken);
 			}
 
 			UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(this.applicationUser,
@@ -79,7 +95,7 @@ public class SocialAuthService {
 	private boolean isInvited(SocialUser socialUser) {
 
 		boolean bool = false;
-		
+
 		if (socialUser.getEmail() != null) {
 
 			Invitation invitation = invitationMongoRepository.findByEmail(socialUser.getEmail());

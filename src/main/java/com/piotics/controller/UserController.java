@@ -33,54 +33,54 @@ public class UserController {
 	
 	@Autowired
 	UserService userService;
-	
-	
-	@RequestMapping(value = "/invite",method = RequestMethod.POST)
-	public ResponseEntity<Invitation> invite(@RequestBody Invitation invitation) throws Exception{
-		
+
+	@RequestMapping(value = "/invite", method = RequestMethod.POST)
+	public ResponseEntity<Invitation> invite(@RequestBody Invitation invitation) throws Exception {
+
 		invitation = userService.invite(invitation);
-		
-		return new ResponseEntity<Invitation>(invitation,HttpStatus.OK);
+
+		return new ResponseEntity<Invitation>(invitation, HttpStatus.OK);
 	}
 
-	@RequestMapping(value="/signUp",method=RequestMethod.POST)
-	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser,HttpServletRequest req) throws Exception{
-		userService.signUp(signUpUser,req);
-		return new ResponseEntity(HttpStatus.ACCEPTED);
+	@RequestMapping(value = "/signUp", method = RequestMethod.POST)
+	public ResponseEntity<ApplicationUser> SignUp(@Valid @RequestBody SignUpUser signUpUser, HttpServletRequest req) throws Exception {
+		ApplicationUser appUser = userService.signUp(signUpUser, req);
+		return new ResponseEntity<ApplicationUser>(appUser,HttpStatus.ACCEPTED);
 	}
 
-	@RequestMapping(value="/verifyEmail",method=RequestMethod.POST)
+	@RequestMapping(value = "/verifyEmail", method = RequestMethod.POST)
 	public ResponseEntity verifyEmail(@Valid @RequestBody Token token) {
 		userService.verifyEmail(token);
-		return new ResponseEntity(HttpStatus.OK);	
+		return new ResponseEntity(HttpStatus.OK);
 	}
-	
-	@RequestMapping(value="/forgotPassword",method=RequestMethod.GET)
+
+	@RequestMapping(value = "/forgotPassword", method = RequestMethod.GET)
 	public ResponseEntity forgotPassword(@Valid @RequestParam String username) throws Exception {
 		userService.forgotPassword(username);
 		return new ResponseEntity(HttpStatus.OK);
 	}
 
-	@RequestMapping(value="/resetPassword",method=RequestMethod.POST)
+	@RequestMapping(value = "/resetPassword", method = RequestMethod.POST)
 	public ResponseEntity resetPassword(@Valid @RequestBody PasswordReset passwordReset) {
 		userService.resetPassword(passwordReset);
-		return new ResponseEntity(HttpStatus.ACCEPTED);	
+		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
-	
-	@RequestMapping(value="/changePassword",method=RequestMethod.POST)
+
+	@RequestMapping(value = "/changePassword", method = RequestMethod.POST)
 	public ResponseEntity changePassword(@Valid @RequestBody PasswordResetResource passwordresetResource) {
 		userService.changePassword(passwordresetResource);
 		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
-	
+
 	@RequestMapping(value = "/verifyIdToken", method = RequestMethod.POST)
-	public ResponseEntity verifyIdToken(Authentication authentication,@RequestParam String idToken, HttpServletRequest req,HttpServletResponse res) throws FirebaseAuthException {
+	public ResponseEntity verifyIdToken(Authentication authentication, @RequestParam String idToken,
+			HttpServletRequest req, HttpServletResponse res) throws FirebaseAuthException {
 		FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
 		String uid = decodedToken.getUid();
-		
+
 //		String uid = "12333";
 
-		userService.verifyIdToken(authentication,res,decodedToken, req);
+		userService.verifyIdToken(authentication, res, decodedToken, req);
 //		userService.verifyIdToken(authentication,res,uid);
 
 		return new ResponseEntity(HttpStatus.OK);

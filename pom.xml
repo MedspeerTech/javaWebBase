@@ -1,4 +1,5 @@
-	<project xmlns="http://maven.apache.org/POM/4.0.0"
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -221,8 +222,6 @@
 			<version>4.1.7.Final</version> </dependency> <dependency> <groupId>org.springframework</groupId> 
 			<artifactId>spring-core</artifactId> <version>5.1.1.RELEASE</version> </dependency> -->
 
-
-
 	</dependencies>
 
 	<build>
@@ -246,7 +245,7 @@
 			</resource>
 		</resources>
 	</build>
-	
+
 	<profiles>
 		<profile>
 			<id>dev</id>
@@ -265,27 +264,23 @@
 			<properties>
 				<spring.profiles.active>QA</spring.profiles.active>
 			</properties>
-			<!-- <build>
-				<finalName>javaWebBase-1.0.${env.BUILD_NUMBER}-RELEASE</finalName>			
-			</build> -->
+			<!-- <build> <finalName>javaWebBase-1.0.${env.BUILD_NUMBER}-RELEASE</finalName> 
+				</build> -->
 		</profile>
 		<profile>
 			<id>PROD</id>
 			<properties>
 				<spring.profiles.active>PROD</spring.profiles.active>
 			</properties>
-			<!-- <build>
-				<finalName>javaWebBase</finalName>
-			</build> -->
+			<!-- <build> <finalName>javaWebBase</finalName> </build> -->
 		</profile>
 		<profile>
 			<id>CI</id>
 			<properties>
 				<spring.profiles.active>CI</spring.profiles.active>
 			</properties>
-			<!-- <build>
-				<finalName>javaWebBase-1.0.${env.BUILD_NUMBER}-RELEASE</finalName>
-			</build> -->
+			<!-- <build> <finalName>javaWebBase-1.0.${env.BUILD_NUMBER}-RELEASE</finalName> 
+				</build> -->
 		</profile>
 	</profiles>
 

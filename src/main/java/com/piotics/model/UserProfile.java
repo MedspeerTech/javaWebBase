@@ -13,7 +13,15 @@ public class UserProfile {
 	private String email;
 	private String phone;
 	
+	public UserProfile() {
+		
+	}
 	
+	public UserProfile(String email, String id) {
+		this.id = id;
+		this.email = email;
+	}
+
 	public String getId() {
 		return id;
 	}

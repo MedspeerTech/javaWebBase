@@ -1,6 +1,7 @@
 package com.piotics.service;
 
-import static com.piotics.config.SecurityConstants.*;
+import static com.piotics.config.SecurityConstants.HEADER_STRING;
+import static com.piotics.config.SecurityConstants.TOKEN_PREFIX;
 
 import java.time.Period;
 import java.time.ZoneId;
@@ -23,6 +24,7 @@ import com.piotics.common.MailManager;
 import com.piotics.common.TimeManager;
 import com.piotics.common.TokenManager;
 import com.piotics.common.TokenType;
+import com.piotics.common.utils.HttpServletRequestUtils;
 import com.piotics.config.JwtTokenProvider;
 import com.piotics.constants.UserRoles;
 import com.piotics.exception.FileException;
@@ -43,7 +45,6 @@ import com.piotics.repository.InvitationMongoRepository;
 import com.piotics.repository.TokenMongoRepository;
 import com.piotics.repository.UserMongoRepository;
 import com.piotics.repository.UserProfileMongoRepository;
-import com.piotics.common.utils.HttpServletRequestUtils;
 
 @Service
 public class UserService {
@@ -90,15 +91,16 @@ public class UserService {
 	@Value("${token.expiration.days}")
 	Integer tokenExpDays;
 
-	public void signUp(SignUpUser signUpUser, HttpServletRequest req) throws Exception {
+	public ApplicationUser signUp(SignUpUser signUpUser, HttpServletRequest req) throws Exception {
 
+		ApplicationUser appUser = new ApplicationUser();
 		ApplicationUser newUser = new ApplicationUser();
 
 		if (inviteRequired) {
 
-			if (isInvited(signUpUser.getUserName(), signUpUser.getToken())) {
+			if (!isExistingUser(signUpUser.getUserName())) {
 
-				if (!isExistingUser(signUpUser.getUserName())) {
+				if (isInvited(signUpUser.getUserName(), signUpUser.getToken())) {
 
 					BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 					String password = bCryptPasswordEncoder.encode(signUpUser.getPassword());
@@ -116,6 +118,7 @@ public class UserService {
 						newUser.setEnabled(true);
 						tokenMongoRepository.deleteByUsernameAndTokenAndTokenType(signUpUser.getUserName(),
 								signUpUser.getToken().getToken(), TokenType.INVITATION);
+						appUser.setEnabled(true);
 					} else {
 
 						newUser.setEnabled(false);
@@ -133,9 +136,11 @@ public class UserService {
 								tokenMongoRepository.save(token);
 								EMail email = mailManager.composeSignupVerificationEmail(token);
 								mailManager.sendEmail(email);
+								appUser.setEnabled(false);
 							}
 						} else {
 							newUser.setEnabled(true);
+							appUser.setEnabled(true);
 						}
 					}
 					newUser = userMongoRepository.save(newUser);
@@ -148,12 +153,12 @@ public class UserService {
 
 				} else {
 
-					throw new UserException("user already exists");
+					throw new UserException("user not invited");
 				}
 
 			} else {
 
-				throw new UserException("user not invited");
+				throw new UserException("user already exists");
 			}
 
 		} else {
@@ -187,6 +192,8 @@ public class UserService {
 				userProfile.setEmail(newUser.getEmail());
 				userProfile.setPhone(newUser.getPhone());
 				userProfile = userProfileMongoRepository.save(userProfile);
+				
+				appUser.setEnabled(true);
 
 			} else {
 
@@ -195,7 +202,7 @@ public class UserService {
 
 		}
 
-		return;
+		return appUser;
 
 	}
 
@@ -336,8 +343,6 @@ public class UserService {
 
 	public void verifyEmail(Token token) {
 
-//		Token dbToken = tokenMongoRepository.findByUsernameAndTokenType(token.getUsername(),
-//				TokenType.EMAILVERIFICATION);
 		Token dbToken = tokenMongoRepository.findByUsernameAndTokenType(token.getUsername(), token.getTokenType());
 
 		if (token.getTokenType().equals(TokenType.EMAILVERIFICATION)) {
@@ -579,7 +584,7 @@ public class UserService {
 					tokenMongoRepository.delete(resetMailToken);
 					throw new Exception(e.getMessage());
 				}
-			}else {
+			} else {
 				throw new UserException("mail id already registered");
 			}
 		} else {
