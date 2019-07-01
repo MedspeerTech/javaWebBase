@@ -14,4 +14,6 @@ public interface TokenMongoRepository extends MongoRepository<Token, String> {
 
 	Long deleteByUsernameAndTokenType(String userName, TokenType invitation);
 
+	Token findByUsername(String username);
+
 }

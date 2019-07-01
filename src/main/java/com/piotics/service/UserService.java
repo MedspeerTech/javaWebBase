@@ -343,9 +343,9 @@ public class UserService {
 
 	public void verifyEmail(Token token) {
 
-		Token dbToken = tokenMongoRepository.findByUsernameAndTokenType(token.getUsername(), token.getTokenType());
+		Token dbToken = tokenMongoRepository.findByUsername(token.getUsername());
 
-		if (token.getTokenType().equals(TokenType.EMAILVERIFICATION)) {
+		if (dbToken.getTokenType().equals(TokenType.EMAILVERIFICATION)) {
 
 			if (dbToken == null) {
 				if (userMongoRepository.findByEmail(token.getUsername()) == null)
@@ -363,7 +363,7 @@ public class UserService {
 			userMongoRepository.save(user);
 			tokenMongoRepository.deleteByUsernameAndTokenAndTokenType(token.getUsername(), token.getToken(),
 					token.getTokenType());
-		} else if (token.getTokenType().equals(TokenType.MAIL_RESET)) {
+		} else if (dbToken.getTokenType().equals(TokenType.MAIL_RESET)) {
 
 			if (dbToken == null) {
 				if (userMongoRepository.findByEmail(token.getUsername()) == null)
