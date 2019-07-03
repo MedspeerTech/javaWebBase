@@ -91,9 +91,8 @@ public class UserService {
 	@Value("${token.expiration.days}")
 	Integer tokenExpDays;
 
-	public ApplicationUser signUp(SignUpUser signUpUser, HttpServletRequest req) throws Exception {
+	public void signUp(SignUpUser signUpUser, HttpServletRequest req) throws Exception {
 
-		ApplicationUser appUser = new ApplicationUser();
 		ApplicationUser newUser = new ApplicationUser();
 
 		if (inviteRequired) {
@@ -118,7 +117,6 @@ public class UserService {
 						newUser.setEnabled(true);
 						tokenMongoRepository.deleteByUsernameAndTokenAndTokenType(signUpUser.getUserName(),
 								signUpUser.getToken().getToken(), TokenType.INVITATION);
-						appUser.setEnabled(true);
 					} else {
 
 						newUser.setEnabled(false);
@@ -136,11 +134,9 @@ public class UserService {
 								tokenMongoRepository.save(token);
 								EMail email = mailManager.composeSignupVerificationEmail(token);
 								mailManager.sendEmail(email);
-								appUser.setEnabled(false);
 							}
 						} else {
 							newUser.setEnabled(true);
-							appUser.setEnabled(true);
 						}
 					}
 					newUser = userMongoRepository.save(newUser);
@@ -193,8 +189,6 @@ public class UserService {
 				userProfile.setPhone(newUser.getPhone());
 				userProfile = userProfileMongoRepository.save(userProfile);
 				
-				appUser.setEnabled(true);
-
 			} else {
 
 				throw new UserException("user already exists");
@@ -202,7 +196,7 @@ public class UserService {
 
 		}
 
-		return appUser;
+		return;
 
 	}
 
@@ -269,24 +263,19 @@ public class UserService {
 
 		return invitation;
 	}
-
+	
 	private boolean isInvited(String userName, Token token) {
 
-		Token dbToken = tokenMongoRepository.findByUsernameAndTokenType(userName, TokenType.INVITATION);
+		Token dbToken = tokenMongoRepository.findByUsername(userName);
 		if (dbToken != null) {
 
 			if (isTokenValid(dbToken)) {
-
-				if (token != null) {
-					if (dbToken.getToken().equals(token.getToken())) {
-
-						return true;
-					} else {
-
-						throw new TokenException("InvalidToken");
-					}
-				} else {
+				
+				if(dbToken.getTokenType().equals(TokenType.INVITATION)) {
+					
 					return true;
+				}else {
+					return false;
 				}
 
 			} else {
@@ -298,6 +287,7 @@ public class UserService {
 			return false;
 		}
 	}
+	
 
 	public boolean isExistingUser(String userName) throws Exception {
 

@@ -82,7 +82,7 @@ public class MailManager {
 	}
 
 	public EMail composeSignupVerificationEmail(Token token) {
-		String verificationUrl = webUrl + "user/verifyEmail" + token.getUsername() + "/" + token.getToken();
+		String verificationUrl = webUrl + "user/verifyEmail/" + token.getUsername() + "/" + token.getToken();
 		EMail email = new EMail();
 		email.setToAddress(token.getUsername());
 		email.setSubject(verificationMailSubject);

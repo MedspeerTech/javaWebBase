@@ -43,9 +43,9 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/signUp", method = RequestMethod.POST)
-	public ResponseEntity<ApplicationUser> SignUp(@Valid @RequestBody SignUpUser signUpUser, HttpServletRequest req) throws Exception {
-		ApplicationUser appUser = userService.signUp(signUpUser, req);
-		return new ResponseEntity<ApplicationUser>(appUser,HttpStatus.ACCEPTED);
+	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser, HttpServletRequest req) throws Exception {
+		userService.signUp(signUpUser, req);
+		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
 
 	@RequestMapping(value = "/verifyEmail", method = RequestMethod.POST)
