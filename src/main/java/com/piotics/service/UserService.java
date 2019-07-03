@@ -113,7 +113,7 @@ public class UserService {
 						newUser.setPhone(signUpUser.getUserName());
 					}
 
-					if (signUpUser.getToken() != null) {
+					if (signUpUser.getToken().getToken() != null) {
 						newUser.setEnabled(true);
 						tokenMongoRepository.deleteByUsernameAndTokenAndTokenType(signUpUser.getUserName(),
 								signUpUser.getToken().getToken(), TokenType.INVITATION);
