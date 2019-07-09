@@ -97,38 +97,38 @@ public class UserService {
 
 		if (inviteRequired) {
 
-			if (!isExistingUser(signUpUser.getUserName())) {
+			if (!isExistingUser(signUpUser.getUsername())) {
 
-				if (isInvited(signUpUser.getUserName(), signUpUser.getToken())) {
+				if (isInvited(signUpUser.getUsername(), signUpUser.getToken())) {
 
 					BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 					String password = bCryptPasswordEncoder.encode(signUpUser.getPassword());
-//					newUser.setUsername(signUpUser.getUserName());
+//					newUser.setUsername(signUpUser.getUsername());
 					newUser.setPassword(password);
 					newUser.setRole(UserRoles.ROLE_USER);
 					newUser = userMongoRepository.save(newUser);
-					if (mailManager.isEmail(signUpUser.getUserName())) {
-						newUser.setEmail(signUpUser.getUserName());
+					if (mailManager.isEmail(signUpUser.getUsername())) {
+						newUser.setEmail(signUpUser.getUsername());
 					} else {
-						newUser.setPhone(signUpUser.getUserName());
+						newUser.setPhone(signUpUser.getUsername());
 					}
 
 					if (signUpUser.getToken().getToken() != null) {
 						newUser.setEnabled(true);
-						tokenMongoRepository.deleteByUsernameAndTokenAndTokenType(signUpUser.getUserName(),
+						tokenMongoRepository.deleteByUsernameAndTokenAndTokenType(signUpUser.getUsername(),
 								signUpUser.getToken().getToken(), TokenType.INVITATION);
 					} else {
 
 						newUser.setEnabled(false);
-						tokenMongoRepository.deleteByUsernameAndTokenType(signUpUser.getUserName(),
+						tokenMongoRepository.deleteByUsernameAndTokenType(signUpUser.getUsername(),
 								TokenType.INVITATION);
 
 						String clientBrowser = httpServletRequestUtils.getClientBrowser(req);
 						boolean remember = Boolean.parseBoolean(req.getHeader("Remember"));
 
 						if (!remember || !clientBrowser.contains("Android") || !clientBrowser.contains("IPhone")) {
-							if (mailManager.isEmail(signUpUser.getUserName())) {
-								Token token = tokenManager.getTokenForEmailVerification(signUpUser.getUserName());
+							if (mailManager.isEmail(signUpUser.getUsername())) {
+								Token token = tokenManager.getTokenForEmailVerification(signUpUser.getUsername());
 								token.setUserId(newUser.getId());
 								token.setTokenType(TokenType.EMAILVERIFICATION);
 								tokenMongoRepository.save(token);
@@ -159,23 +159,23 @@ public class UserService {
 
 		} else {
 
-			if (!isExistingUser(signUpUser.getUserName())) {
+			if (!isExistingUser(signUpUser.getUsername())) {
 
 				BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 				String password = bCryptPasswordEncoder.encode(signUpUser.getPassword());
-//				newUser.setUsername(signUpUser.getUserName());
+//				newUser.setUsername(signUpUser.getUsername());
 				newUser.setPassword(password);
 				newUser.setRole(UserRoles.ROLE_USER);
 				newUser = userMongoRepository.save(newUser);
 				newUser.setEnabled(true);
-				if (mailManager.isEmail(signUpUser.getUserName())) {
-					newUser.setEmail(signUpUser.getUserName());
+				if (mailManager.isEmail(signUpUser.getUsername())) {
+					newUser.setEmail(signUpUser.getUsername());
 				} else {
-					newUser.setPhone(signUpUser.getUserName());
+					newUser.setPhone(signUpUser.getUsername());
 				}
 
-				if (mailManager.isEmail(signUpUser.getUserName())) {
-					Token token = tokenManager.getTokenForEmailVerification(signUpUser.getUserName());
+				if (mailManager.isEmail(signUpUser.getUsername())) {
+					Token token = tokenManager.getTokenForEmailVerification(signUpUser.getUsername());
 					tokenMongoRepository.save(token);
 					EMail email = mailManager.composeSignupVerificationEmail(token);
 
@@ -425,7 +425,7 @@ public class UserService {
 
 	public void changePassword(@Valid PasswordResetResource passwordresetResource) {
 
-		ApplicationUser user = userMongoRepository.findByUsername(passwordresetResource.getUserName());
+		ApplicationUser user = userMongoRepository.findByUsername(passwordresetResource.getUsername());
 		if (user != null) {
 			BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
@@ -462,7 +462,7 @@ public class UserService {
 			// and generate JWT
 			try {
 				SignUpUser signUpUser = new SignUpUser();
-				signUpUser.setUserName(decodedToken.getEmail());
+				signUpUser.setUsername(decodedToken.getEmail());
 				signUpUser.setPassword("welcome");
 
 				signUp(signUpUser, req);
@@ -482,14 +482,14 @@ public class UserService {
 
 		if (dbUserProfile != null) {
 
-			if (userProfile.getUserName() != null && !userProfile.getUserName().isEmpty()) {
+			if (userProfile.getUsername() != null && !userProfile.getUsername().isEmpty()) {
 
-				if (dbUserProfile.getUserName() != null) {
-					if (!dbUserProfile.getUserName().equals(userProfile.getUserName())) {
-						dbUserProfile.setUserName(userProfile.getUserName());
+				if (dbUserProfile.getUsername() != null) {
+					if (!dbUserProfile.getUsername().equals(userProfile.getUsername())) {
+						dbUserProfile.setUsername(userProfile.getUsername());
 					}
 				} else {
-					dbUserProfile.setUserName(userProfile.getUserName());
+					dbUserProfile.setUsername(userProfile.getUsername());
 				}
 			}
 			if (userProfile.getFileId() != null && !userProfile.getFileId().isEmpty()) {
@@ -538,7 +538,7 @@ public class UserService {
 
 		UserProfile dbUserProfile = userProfileMongoRepository.findById(userProfile.getId()).get();
 
-		Token resetMailToken = tokenMongoRepository.findByUsernameAndTokenType(userProfile.getUserName(),
+		Token resetMailToken = tokenMongoRepository.findByUsernameAndTokenType(userProfile.getUsername(),
 				TokenType.MAIL_RESET);
 		if (resetMailToken == null) {
 

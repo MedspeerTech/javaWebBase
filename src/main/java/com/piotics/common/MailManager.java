@@ -102,7 +102,7 @@ public class MailManager {
 	}
 
 	public EMail composeInviteVerificationEmail(Token token) {
-		String invitationUrl = webUrl + "signup" + token.getUsername() + "/" + token.getToken();
+		String invitationUrl = webUrl + "signup/" + token.getUsername() + "/" + token.getToken();
 		EMail email = new EMail();
 		email.setToAddress(token.getUsername());
 		email.setSubject(invititationMailSubject);
