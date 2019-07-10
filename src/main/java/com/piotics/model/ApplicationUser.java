@@ -40,6 +40,12 @@ public class ApplicationUser implements UserDetails {
 		this.role =role;
 	}
 
+	public ApplicationUser(String password, UserRoles userRole) {
+		
+		this.password = password;
+		this.role = userRole;
+	}
+
 	public String getId() {
 		return id;
 	}

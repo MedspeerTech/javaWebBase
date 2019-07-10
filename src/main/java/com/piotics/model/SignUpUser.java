@@ -14,6 +14,12 @@ public class SignUpUser {
 	private Token token;
 
 	
+	public SignUpUser(String email, String password) {
+
+		this.username = email;
+		this.password = password;
+	}
+
 	public String getUsername() {
 		return username;
 	}

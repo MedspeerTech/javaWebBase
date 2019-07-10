@@ -337,6 +337,11 @@ public class FileService {
 		throw new ResourceNotFoundException();
 	}
 
+	public FileMeta getFileById(String id) {
+		
+		return fileMetaMongoRepository.findById(id).get();
+	}
+
 	
 
 }

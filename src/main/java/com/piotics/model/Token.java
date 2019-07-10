@@ -36,7 +36,7 @@ public class Token {
 	public Token() {
 	}
 
-	public Token(String username, String token, TokenType emailverification, Date date) {
+	public Token(String username, String token, TokenType tokenType, Date date) {
 		
 		this.username = username;
 		this.token = token;

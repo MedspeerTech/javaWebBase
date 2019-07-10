@@ -20,16 +20,26 @@ public class TokenManager {
 		return new BigInteger(130,random).toString(32);
 	}
 	
-	public Token getTokenForEmailVerification(String Username) {
+	public Token getTokenForEmailVerification(String username) {
 		Date date = Date.from(timeManager.getCurrentTimestamp().toInstant());
-		return new Token(Username,getToken(),TokenType.EMAILVERIFICATION,date);
+		return new Token(username,getToken(),TokenType.EMAILVERIFICATION,date);
 		
 	}
 	
-	public Token getTokenForPasswordReset(String Username) {
+	public Token getTokenForPasswordReset(String username) {
 		Date date = Date.from(timeManager.getCurrentTimestamp().toInstant());
-		return new Token(Username,getToken(),TokenType.PASSWORDRESET,date);
+		return new Token(username,getToken(),TokenType.PASSWORDRESET,date);
 		
+	}
+
+	public Token getTokenForInvite(String username) {
+		Date date = Date.from(timeManager.getCurrentTimestamp().toInstant());
+		return new Token(username,getToken(),TokenType.INVITATION,date);
+	}
+
+	public Token getTokenForMailReset(String username) {
+		Date date = Date.from(timeManager.getCurrentTimestamp().toInstant());
+		return new Token(username,getToken(),TokenType.MAIL_RESET,date);
 	}
 
 }
