@@ -45,3 +45,5 @@ src/main/webapp/static/dist
 *.settings
 *.factorypath
 /.metadata/
+src/main/java/com/piotics/learn
+javaWebBase.iml

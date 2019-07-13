@@ -107,6 +107,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
               .antMatchers(HttpMethod.GET, "/file/video/stream/**").permitAll()
               .antMatchers(HttpMethod.GET, "/file/getFile").permitAll()
               .antMatchers(HttpMethod.GET, "/file/get*/**").permitAll()
+              .antMatchers(HttpMethod.GET, "/learn/**").permitAll()
 //              .antMatchers(HttpMethod.GET, "/file/getPreview/**").permitAll()
 
 
