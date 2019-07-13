@@ -3,9 +3,6 @@ package com.piotics.service;
 import static com.piotics.config.SecurityConstants.HEADER_STRING;
 import static com.piotics.config.SecurityConstants.TOKEN_PREFIX;
 
-import java.time.Period;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,15 +22,10 @@ import com.piotics.common.utils.BCryptPasswordUtils;
 import com.piotics.common.utils.HttpServletRequestUtils;
 import com.piotics.config.JwtTokenProvider;
 import com.piotics.constants.UserRoles;
-import com.piotics.exception.FileException;
 import com.piotics.exception.TokenException;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
-import com.piotics.model.EMail;
-import com.piotics.model.FileMeta;
-import com.piotics.model.Invitation;
 import com.piotics.model.PasswordReset;
-import com.piotics.model.PasswordResetResource;
 import com.piotics.model.SignUpUser;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
@@ -60,16 +52,7 @@ public class UserService {
 	HttpServletRequestUtils httpServletRequestUtils;
 
 	@Autowired
-	TimeManager timeManager;
-
-	@Autowired
 	MailManager mailManager;
-
-	@Autowired
-	FileService fileService;
-
-	@Autowired
-	FileMetaMongoRepository fileMetaMongoRepository;
 
 	@Autowired
 	JwtTokenProvider jwtTokenProvider;
@@ -79,12 +62,14 @@ public class UserService {
 
 	@Autowired
 	InvitationService invitationService;
+	
+	@Autowired
+	MailService mailService;
 
 	@Value("${invite.required}")
 	public boolean inviteRequired;
 
-	@Value("${token.expiration.days}")
-	Integer tokenExpDays;
+	
 
 	public void signUp(SignUpUser signUpUser, HttpServletRequest req) throws Exception {
 
@@ -92,7 +77,7 @@ public class UserService {
 
 			if (inviteRequired) {
 
-				if (isInvited(signUpUser.getUsername(), signUpUser.getToken())) {
+				if (invitationService.isInvited(signUpUser.getUsername(), signUpUser.getToken())) {
 
 					proceedToSignUp(signUpUser, req);
 				} else {
@@ -139,7 +124,7 @@ public class UserService {
 				if (mailManager.isEmail(signUpUser.getUsername())) {
 
 					Token token = tokenService.getTokenForEmailVerification(newUser);
-					sendMail(token);
+					mailService.sendMail(token);
 				}
 			} else {
 				newUser.setEnabled(true);
@@ -149,108 +134,6 @@ public class UserService {
 
 		UserProfile userProfile = new UserProfile(newUser.getId(), newUser.getEmail(), newUser.getPhone());
 		userProfileService.save(userProfile);
-	}
-
-	private void sendMail(Token token) {
-
-//		Token token = tokenService.getTokenForEmailVerification(appUser);
-		EMail email = new EMail();
-		if (token.getTokenType() == TokenType.EMAILVERIFICATION) {
-
-			email = mailManager.composeSignupVerificationEmail(token);
-
-		} else if (token.getTokenType() == TokenType.INVITATION) {
-
-			email = mailManager.composeInviteVerificationEmail(token);
-		} else if (token.getTokenType() == TokenType.PASSWORDRESET) {
-
-			email = mailManager.composeForgotPasswordMail(token);
-		} else if (token.getTokenType() == TokenType.MAIL_RESET) {
-
-			email = mailManager.composeMailResetVerificationEmail(token);
-		}
-		mailManager.sendEmail(email);
-	}
-
-	public Invitation invite(Invitation invitation) throws Exception {
-
-		String phone = invitation.getPhone();
-		String email = invitation.getEmail();
-
-		if (email != null && !email.isEmpty()) {
-			if (!isExistingUser(email)) {
-
-				if (!isInvited(email, null)) {
-
-					Token token = tokenService.getInviteToken(invitation.getEmail());
-					token = tokenService.save(token);
-
-					if (invitation.getEmail() != null) {
-
-						sendMail(token);
-					}
-
-					invitation.setToken(token);
-					invitation = invitationService.save(invitation);
-
-				} else {
-					throw new UserException("user already invited");
-				}
-
-			} else {
-				throw new UserException("existing user");
-			}
-		} else if (phone != null && !phone.isEmpty()) {
-
-			if (!isExistingUser(phone)) {
-
-				// user not exist continue signup
-
-				if (!isInvited(phone, null)) {
-
-					Token token = tokenService.getInviteToken(invitation.getPhone());
-					token = tokenService.save(token);
-
-					invitation.setToken(token);
-					invitation = invitationService.save(invitation);
-
-				} else {
-					throw new UserException("user already invited");
-				}
-
-			} else {
-				throw new UserException("conflict");
-			}
-		} else {
-			throw new UserException("username not provided");
-		}
-
-		return invitation;
-	}
-
-	private boolean isInvited(String username, Token token) {
-
-		Token dbToken = tokenService.getTokenFromDB(username);
-
-		if (dbToken != null) {
-
-			if (isTokenValid(dbToken)) {
-
-				if (dbToken.getTokenType().equals(TokenType.INVITATION)) {
-
-					return true;
-				} else {
-					return false;
-				}
-
-			} else {
-				tokenService.deleteInviteToken(username, dbToken);
-				return false;
-			}
-		} else {
-
-			return false;
-		}
 	}
 
 	public boolean isExistingUser(String userName) throws Exception {
@@ -275,23 +158,7 @@ public class UserService {
 
 	}
 
-	boolean isTokenValid(Token dbToken) {
-		ZonedDateTime currentDate = timeManager.getCurrentTimestamp();
-
-		final ZoneId systemDefault = ZoneId.systemDefault();
-		int days = Period
-				.between(currentDate.toLocalDate(),
-						ZonedDateTime.ofInstant(dbToken.getCreationDate().toInstant(), systemDefault).toLocalDate())
-				.getDays();
-
-		if (days > tokenExpDays) {
-
-			throw new TokenException("ExpiredToken");
-		} else {
-
-			return true;
-		}
-	}
+	
 
 	public void verifyEmail(Token token) {
 
@@ -306,7 +173,7 @@ public class UserService {
 					throw new UserException("ExistingUser");
 			}
 
-			isTokenValid(dbToken);
+			tokenService.isTokenValid(dbToken);
 			if (!dbToken.getToken().equals(token.getToken()))
 				throw new TokenException("InvalidToken");
 
@@ -325,7 +192,7 @@ public class UserService {
 					throw new UserException("ExistingUser");
 			}
 
-			isTokenValid(dbToken);
+			tokenService.isTokenValid(dbToken);
 			if (!dbToken.getToken().equals(token.getToken()))
 				throw new TokenException("InvalidToken");
 
@@ -335,6 +202,7 @@ public class UserService {
 
 			UserProfile userProfile = userProfileService.getProfile(dbToken.getUserId());
 			userProfile.setEmail(token.getUsername());
+			userProfileService.save(userProfile);
 
 			tokenService.deleteByUsernameAndTokenAndTokenType(token.getUsername(), token.getToken(),
 					token.getTokenType());
@@ -348,7 +216,6 @@ public class UserService {
 
 		if (isExistingUser(username)) {
 
-			EMail emailToSend = new EMail();
 			Token dbToken = tokenService.getTokenByUserNameAndTokenType(username, TokenType.PASSWORDRESET);
 			ApplicationUser appUser = userMongoRepository.findByEmail(username);
 			if (dbToken == null) {
@@ -356,7 +223,7 @@ public class UserService {
 				Token token = tokenService.getPasswordResetToken(username);
 				token.setUserId(appUser.getId());
 				tokenService.save(token);
-				sendMail(token);
+				mailService.sendMail(token);
 				return;
 			}
 		} else {
@@ -373,7 +240,7 @@ public class UserService {
 		if (dbToken == null)
 			throw new TokenException("InvalidToken");
 
-		isTokenValid(dbToken);
+		tokenService.isTokenValid(dbToken);
 		if (!passwordReset.getToken().equals(dbToken.getToken())) {
 			throw new TokenException("InvalidToken");
 		}
@@ -386,26 +253,6 @@ public class UserService {
 
 		tokenService.deleteByUsernameAndTokenAndTokenType(passwordReset.getUsername(), passwordReset.getToken(),
 				TokenType.PASSWORDRESET);
-	}
-
-	public void changePassword(@Valid PasswordResetResource passwordresetResource) {
-
-		ApplicationUser user = userMongoRepository.findByEmail(passwordresetResource.getUsername());
-		if (user != null) {
-			// check if the password matches
-			if (bCryptPasswordUtils.isMatching(passwordresetResource.getPassword(), user.getPassword())) {
-
-				user.setPassword(bCryptPasswordUtils.encodePassword(passwordresetResource.getNewPassword()));
-				userMongoRepository.save(user);
-
-			} else {
-
-				throw new UserException("username and password mismatch");
-			}
-		} else {
-			throw new UserException("username not valid");
-		}
-
 	}
 
 	public void verifyIdToken(Authentication authentication, HttpServletResponse res, FirebaseToken decodedToken,
@@ -436,107 +283,6 @@ public class UserService {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	public UserProfile editProfile(UserProfile userProfile) {
-
-		UserProfile dbUserProfile = userProfileService.getProfile(userProfile.getId());
-
-		if (dbUserProfile != null) {
-
-			if (userProfile.getUsername() != null && !userProfile.getUsername().isEmpty()) {
-
-				if (dbUserProfile.getUsername() != null) {
-					if (!dbUserProfile.getUsername().equals(userProfile.getUsername())) {
-						dbUserProfile.setUsername(userProfile.getUsername());
-					}
-				} else {
-					dbUserProfile.setUsername(userProfile.getUsername());
-				}
-			}
-			if (userProfile.getFileId() != null && !userProfile.getFileId().isEmpty()) {
-
-				if (dbUserProfile.getFileId() != null) {
-
-					if (!dbUserProfile.getFileId().equals(userProfile.getFileId())) {
-
-						FileMeta fileMeta = fileService.getFileById(userProfile.getId());
-
-						if (fileService.isImageFile(fileMeta)) {
-
-							dbUserProfile.setFileId(userProfile.getFileId());
-
-						} else {
-
-							throw new FileException("not an image file");
-						}
-					}
-				} else {
-
-					FileMeta fileMeta = fileService.getFileById(userProfile.getId());
-
-					if (fileService.isImageFile(fileMeta)) {
-
-						dbUserProfile.setFileId(userProfile.getFileId());
-
-					} else {
-
-						throw new FileException("not an image file");
-					}
-				}
-			}
-			dbUserProfile = userProfileService.save(dbUserProfile);
-		}
-		return dbUserProfile;
-	}
-
-	public void resetMail(UserProfile userProfile) throws Exception {
-
-		UserProfile dbUserProfile = userProfileService.getProfile(userProfile.getId());
-
-		Token resetMailToken = tokenService.getTokenByUserNameAndTokenType(userProfile.getUsername(),
-				TokenType.MAIL_RESET);
-
-		if (resetMailToken == null) {
-
-			if (!isExistingUser(userProfile.getEmail())) {
-
-				try {
-
-					resetMailToken = tokenService.getMailResetToken(getApplicationUser(userProfile.getId()),
-							userProfile.getEmail());
-
-					if (dbUserProfile.getEmail() != null) {
-
-						if (!dbUserProfile.getEmail().equals(userProfile.getEmail())) {
-
-							sendMail(resetMailToken);
-
-						} else {
-
-							throw new Exception("this email has been already verified");
-						}
-					} else {
-
-						sendMail(resetMailToken);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					tokenService.deleteToken(resetMailToken);
-					throw new Exception(e.getMessage());
-				}
-			} else {
-				throw new UserException("mail id already registered");
-			}
-		} else {
-			throw new TokenException("reset mail request already exist");
-		}
-
-	}
-
-	public UserProfile getProfile(String id) {
-
-		return userProfileService.getProfile(id);
 	}
 
 	public ApplicationUser getApplicationUser(String id) {

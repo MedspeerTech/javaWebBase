@@ -4,11 +4,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import com.piotics.model.PasswordResetResource;
-import com.piotics.model.SignUpUser;
-import com.piotics.model.Token;
-import com.piotics.model.UserProfile;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.piotics.model.PasswordReset;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
-import com.piotics.model.ApplicationUser;
-import com.piotics.model.Invitation;
+import com.piotics.model.PasswordReset;
+import com.piotics.model.SignUpUser;
+import com.piotics.model.Token;
 import com.piotics.service.UserService;
 
 @RestController
@@ -33,14 +28,6 @@ public class UserController {
 	
 	@Autowired
 	UserService userService;
-
-	@RequestMapping(value = "/invite", method = RequestMethod.POST)
-	public ResponseEntity<Invitation> invite(@RequestBody Invitation invitation) throws Exception {
-
-		invitation = userService.invite(invitation);
-
-		return new ResponseEntity<Invitation>(invitation, HttpStatus.OK);
-	}
 
 	@RequestMapping(value = "/signUp", method = RequestMethod.POST)
 	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser, HttpServletRequest req) throws Exception {
@@ -66,12 +53,6 @@ public class UserController {
 		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
 
-	@RequestMapping(value = "/changePassword", method = RequestMethod.POST)
-	public ResponseEntity changePassword(@Valid @RequestBody PasswordResetResource passwordresetResource) {
-		userService.changePassword(passwordresetResource);
-		return new ResponseEntity(HttpStatus.ACCEPTED);
-	}
-
 	@RequestMapping(value = "/verifyIdToken", method = RequestMethod.POST)
 	public ResponseEntity verifyIdToken(Authentication authentication, @RequestParam String idToken,
 			HttpServletRequest req, HttpServletResponse res) throws FirebaseAuthException {
@@ -84,24 +65,6 @@ public class UserController {
 //		userService.verifyIdToken(authentication,res,uid);
 
 		return new ResponseEntity(HttpStatus.OK);
-	}
-	
-	@RequestMapping(value="/editProfile",method=RequestMethod.POST)
-	public ResponseEntity<UserProfile> editProfile(@RequestBody UserProfile userProfile) {
-		userProfile = userService.editProfile(userProfile);
-		return new ResponseEntity<UserProfile>(userProfile,HttpStatus.ACCEPTED);
-	}
-	
-	@RequestMapping(value="/getProfile",method=RequestMethod.GET)
-	public ResponseEntity<UserProfile> getProfile(@RequestParam String id) {
-		UserProfile userProfile = userService.getProfile(id);
-		return new ResponseEntity<UserProfile>(userProfile,HttpStatus.OK);
-	}
-	
-	@RequestMapping(value="/resetMail",method=RequestMethod.POST)
-	public ResponseEntity<UserProfile> resetMail(@RequestBody UserProfile userProfile) throws Exception{
-		userService.resetMail(userProfile);
-		return new ResponseEntity<UserProfile>(HttpStatus.OK);
 	}
 	
 	

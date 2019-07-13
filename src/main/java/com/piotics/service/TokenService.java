@@ -1,12 +1,19 @@
 package com.piotics.service;
 
+import java.time.Period;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.piotics.common.TimeManager;
 import com.piotics.common.TokenManager;
 import com.piotics.common.TokenType;
+import com.piotics.exception.TokenException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
@@ -20,7 +27,13 @@ public class TokenService {
 	
 	@Autowired
 	TokenManager tokenManager;
+	
+	@Autowired
+	TimeManager timeManager;
 
+	@Value("${token.expiration.days}")
+	Integer tokenExpDays;
+	
 	public void deleteInviteToken(String username, Token token) {
 		
 		if(token != null) {
@@ -86,4 +99,23 @@ public class TokenService {
 
 		tokenMongoRepository.delete(token);		
 	}
+	
+	public boolean isTokenValid(Token dbToken) {
+		ZonedDateTime currentDate = timeManager.getCurrentTimestamp();
+
+		final ZoneId systemDefault = ZoneId.systemDefault();
+		int days = Period
+				.between(currentDate.toLocalDate(),
+						ZonedDateTime.ofInstant(dbToken.getCreationDate().toInstant(), systemDefault).toLocalDate())
+				.getDays();
+
+		if (days > tokenExpDays) {
+
+			throw new TokenException("ExpiredToken");
+		} else {
+
+			return true;
+		}
+	}
+	
 }
