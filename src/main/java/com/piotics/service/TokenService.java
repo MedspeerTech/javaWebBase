@@ -46,6 +46,12 @@ public class TokenService {
 		}
 		
 	}
+	
+	public void deleteInviteTkenByUsername(String username) {
+		
+		tokenMongoRepository.deleteByUsernameAndTokenType(username,
+				TokenType.INVITATION);
+	}
 
 	public Token getTokenForEmailVerification(ApplicationUser appUser) {
 		
@@ -109,12 +115,17 @@ public class TokenService {
 				.getDays();
 
 		if (days > tokenExpDays) {
-
+			
 			throw new TokenException("ExpiredToken");
 		} else {
 
 			return true;
 		}
+	}
+
+	public void deleteByUsernameAndTokenType(String username, TokenType tokenType) {
+
+		tokenMongoRepository.deleteByUsernameAndTokenType(username,tokenType);
 	}
 	
 }
