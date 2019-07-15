@@ -1,13 +1,6 @@
 package com.piotics.service;
 
-import static com.piotics.config.SecurityConstants.HEADER_STRING;
-import static com.piotics.config.SecurityConstants.TOKEN_PREFIX;
-
 import java.util.Optional;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,11 +65,11 @@ public class UserService {
 		if (isExistingUser(signUpUser.getUsername()))
 			throw new UserException("user already exists");
 
-		if (inviteRequired && !invitationService.isInvited(signUpUser.getUsername(), signUpUser.getToken()))
+		if (inviteRequired && !invitationService.isInvited(signUpUser.getUsername()))
 			throw new UserException("user not invited");
 
 		proceedToSignUp(signUpUser);
-		
+
 		return;
 	}
 
@@ -84,19 +77,22 @@ public class UserService {
 
 		String encodedPassword = bCryptPasswordUtils.encodePassword(signUpUser.getPassword());
 
-		ApplicationUser newUser = new ApplicationUser(signUpUser.getUsername(),encodedPassword, UserRoles.ROLE_USER, true);
+		ApplicationUser newUser = new ApplicationUser(signUpUser.getUsername(), encodedPassword, UserRoles.ROLE_USER,
+				true);
+		Token token = new Token();
 
-		if (signUpUser.getToken() != null) {
-			tokenService.deleteInviteToken(signUpUser.getUsername(), signUpUser.getToken());
-		} else {
-			
-			if (mailManager.isEmail(signUpUser.getUsername())) {
-				newUser.setEnabled(false);
-				Token token = tokenService.getTokenForEmailVerification(newUser);
-				mailService.sendMail(token);
-			}
+		if (invitationService.isInvited(signUpUser.getUsername()))
+			tokenService.deleteInviteTkenByUsername(signUpUser.getUsername());
+
+		if (mailManager.isEmail(signUpUser.getUsername())) {
+			newUser.setEnabled(false);
+			token = tokenService.getTokenForEmailVerification(newUser);
+			mailService.sendMail(token);
 		}
+
 		newUser = userMongoRepository.save(newUser);
+		token.setUserId(newUser.getId());
+		tokenService.save(token);
 
 		UserProfile userProfile = new UserProfile(newUser.getId(), newUser.getEmail(), newUser.getPhone());
 		userProfileService.save(userProfile);
@@ -104,24 +100,17 @@ public class UserService {
 
 	public boolean isExistingUser(String userName) throws Exception {
 
-		if (userName != null || !userName.isEmpty()) {
-
-			ApplicationUser applicationUser = applicationUserMongoRepository.findByEmail(userName);
-			if (applicationUser == null) {
-				applicationUser = applicationUserMongoRepository.findByPhone(userName);
-				if (applicationUser != null) {
-					return true;
-				} else {
-					return false;
-				}
-			} else {
-				return true;
-			}
-
-		} else {
+		boolean bool = true;
+		if (userName == null || userName.isEmpty())
 			throw new Exception("username not provided");
-		}
 
+		ApplicationUser appUserByEmail = applicationUserMongoRepository.findByEmail(userName);
+		ApplicationUser appUserByPhone = applicationUserMongoRepository.findByPhone(userName);
+
+		if (appUserByEmail == null && appUserByPhone == null)
+			bool = false;
+
+		return bool;
 	}
 
 	public void verifyEmail(Token token) {
@@ -142,31 +131,26 @@ public class UserService {
 		ApplicationUser user = userMongoRepository.findById(dbToken.getUserId()).get();
 		user.setEnabled(true);
 		userMongoRepository.save(user);
-		tokenService.deleteByUsernameAndTokenAndTokenType(token.getUsername(), token.getToken(), token.getTokenType());
-
+		tokenService.deleteByUsernameAndTokenType(token.getUsername(), token.getTokenType());
 		return;
 
 	}
 
 	public void forgotPassword(String username) throws Exception {
 
-		if (isExistingUser(username)) {
-
-			Token dbToken = tokenService.getTokenByUserNameAndTokenType(username, TokenType.PASSWORDRESET);
-			ApplicationUser appUser = userMongoRepository.findByEmail(username);
-			if (dbToken == null) {
-
-				Token token = tokenService.getPasswordResetToken(username);
-				token.setUserId(appUser.getId());
-				tokenService.save(token);
-				mailService.sendMail(token);
-				return;
-			}
-		} else {
-
+		if (!isExistingUser(username))
 			throw new UserException("user not exist");
-		}
 
+		Token dbToken = tokenService.getTokenByUserNameAndTokenType(username, TokenType.PASSWORDRESET);
+		ApplicationUser appUser = userMongoRepository.findByEmail(username);
+		
+		if (dbToken == null) {
+			Token token = tokenService.getPasswordResetToken(username);
+			token.setUserId(appUser.getId());
+			tokenService.save(token);
+			mailService.sendMail(token);
+			return;
+		}
 	}
 
 	public void resetPassword(PasswordReset passwordReset) {
@@ -177,9 +161,8 @@ public class UserService {
 			throw new TokenException("InvalidToken");
 
 		tokenService.isTokenValid(dbToken);
-		if (!passwordReset.getToken().equals(dbToken.getToken())) {
+		if (!passwordReset.getToken().equals(dbToken.getToken()))
 			throw new TokenException("InvalidToken");
-		}
 
 		ApplicationUser user = userMongoRepository.findByEmail(passwordReset.getUsername());
 
@@ -191,19 +174,16 @@ public class UserService {
 				TokenType.PASSWORDRESET);
 	}
 
-	public void verifyIdToken(Authentication authentication, HttpServletResponse res, FirebaseToken decodedToken,
-			HttpServletRequest req) {
+	public String verifyIdToken(Authentication authentication, FirebaseToken decodedToken) {
 
 		ApplicationUser applicationUser = new ApplicationUser();
 		Optional<ApplicationUser> applicationUserOptional = userMongoRepository.findById(decodedToken.getUid());
-
+		String token = null;
 		if (applicationUserOptional.isPresent()) {
 
 			// user exists. generate JWT
 			applicationUser = applicationUserOptional.get();
-			String token = jwtTokenProvider.generateToken(authentication);
-			res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
-
+			token = jwtTokenProvider.generateToken(authentication);
 		} else {
 			// user not exist. create a new user with given uid
 			// and generate JWT
@@ -212,13 +192,12 @@ public class UserService {
 
 				signUp(signUpUser);
 
-				String token = jwtTokenProvider.generateToken(authentication);
-				res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
-
+				token = jwtTokenProvider.generateToken(authentication);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
+		return token;
 	}
 
 	public ApplicationUser getApplicationUser(String id) {

@@ -16,9 +16,6 @@ import com.piotics.resources.SocialUser;
 
 @Document(value = "user_security")
 public class ApplicationUser implements UserDetails {
-
-	@Autowired
-	MailManager mailManager;
 	
 	@Id
 	private String id;
@@ -46,7 +43,7 @@ public class ApplicationUser implements UserDetails {
 	}
 
 	public ApplicationUser(String username,String password, UserRoles userRole,boolean enabled) {
-		
+		MailManager mailManager = new MailManager();
 		if (mailManager.isEmail(username)) {
 			this.email = username;
 		} else {

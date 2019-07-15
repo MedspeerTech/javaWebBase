@@ -1,6 +1,10 @@
 package com.piotics.common.utils;
 
+import static com.piotics.config.SecurityConstants.HEADER_STRING;
+import static com.piotics.config.SecurityConstants.TOKEN_PREFIX;
+
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Component;
 
@@ -68,6 +72,11 @@ public class HttpServletRequestUtils {
             return "UnKnown, More-Info: " + browserDetails;
         }
     }
+	
+	public void addHeader(HttpServletResponse res,String token) {
+		
+		res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
+	}
 
 
 }

@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.piotics.common.utils.HttpServletRequestUtils;
+import com.piotics.config.JwtTokenProvider;
 import com.piotics.model.PasswordReset;
 import com.piotics.model.SignUpUser;
 import com.piotics.model.Token;
@@ -29,6 +31,9 @@ public class UserController {
 	@Autowired
 	UserService userService;
 
+	@Autowired
+	HttpServletRequestUtils httpServletRequestUtils;
+	
 	@RequestMapping(value = "/signUp", method = RequestMethod.POST)
 	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser) throws Exception {
 		userService.signUp(signUpUser);
@@ -54,15 +59,18 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/verifyIdToken", method = RequestMethod.POST)
-	public ResponseEntity verifyIdToken(Authentication authentication, @RequestParam String idToken,
-			HttpServletRequest req, HttpServletResponse res) throws FirebaseAuthException {
-		FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
-		String uid = decodedToken.getUid();
+	public ResponseEntity verifyIdToken(Authentication authentication, @RequestParam String idToken, HttpServletResponse res) throws FirebaseAuthException {
+//		FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+//		String uid = decodedToken.getUid();
 
-//		String uid = "12333";
+		String uid = "12333";
 
-		userService.verifyIdToken(authentication, res, decodedToken, req);
-//		userService.verifyIdToken(authentication,res,uid);
+//		String token = userService.verifyIdToken(authentication, decodedToken);
+		JwtTokenProvider jwtTokenProvider = new JwtTokenProvider();
+		String token = jwtTokenProvider.generateToken(authentication);
+//		String token = userService.(authentication,uid);
+		httpServletRequestUtils.addHeader(res, token);
+		
 
 		return new ResponseEntity(HttpStatus.OK);
 	}

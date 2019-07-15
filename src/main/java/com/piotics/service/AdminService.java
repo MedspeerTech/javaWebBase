@@ -30,7 +30,7 @@ public class AdminService {
 		if (email != null && !email.isEmpty()) {
 			if (!userService.isExistingUser(email)) {
 
-				if (!invitationService.isInvited(email, null)) {
+				if (!invitationService.isInvited(email)) {
 
 					Token token = tokenService.getInviteToken(invitation.getEmail());
 					token = tokenService.save(token);
@@ -56,7 +56,7 @@ public class AdminService {
 
 				// user not exist continue signup
 
-				if (!invitationService.isInvited(phone, null)) {
+				if (!invitationService.isInvited(phone)) {
 
 					Token token = tokenService.getInviteToken(invitation.getPhone());
 					token = tokenService.save(token);

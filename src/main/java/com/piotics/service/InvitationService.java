@@ -3,6 +3,7 @@ package com.piotics.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.piotics.common.TokenType;
 import com.piotics.model.Invitation;
 import com.piotics.model.Token;
 import com.piotics.repository.InvitationMongoRepository;
@@ -21,9 +22,9 @@ public class InvitationService {
         return invitationMongoRepository.save(invitation);
     }
 
-    public boolean isInvited(String username, Token token) {
+    public boolean isInvited(String username) {
 
-        Token dbToken = tokenService.getTokenFromDBWithTokenType(username,token.getTokenType());
+        Token dbToken = tokenService.getTokenFromDBWithTokenType(username,TokenType.INVITATION);
 
         if (dbToken != null && tokenService.isTokenValid(dbToken)) {
             return true;
