@@ -104,23 +104,13 @@ public class UserService {
 	}
 
 	public boolean isExistingUser(String userName) throws Exception {
+		return  !(applicationUserMongoRepository.findByEmail(userName) == null && applicationUserMongoRepository.findByPhone(userName) == null);
 
-		boolean bool = true;
-		if (userName == null || userName.isEmpty())
-			throw new Exception("username not provided");
-
-		ApplicationUser appUserByEmail = applicationUserMongoRepository.findByEmail(userName);
-		ApplicationUser appUserByPhone = applicationUserMongoRepository.findByPhone(userName);
-
-		if (appUserByEmail == null && appUserByPhone == null)
-			bool = false;
-
-		return bool;
 	}
 
 	public void verifyEmail(Token token) {
 
-		Token dbToken = tokenService.getTokenFromDBWithTokenType(token.getUsername(), token.getTokenType());
+		Token dbToken = tokenService.getTokenFromDBWithTokenType(token.getUsername(), TokenType.EMAILVERIFICATION);
 
 		if (dbToken == null) {
 			if (userMongoRepository.findByEmail(token.getUsername()) == null)
@@ -136,7 +126,7 @@ public class UserService {
 		ApplicationUser user = userMongoRepository.findById(dbToken.getUserId()).get();
 		user.setEnabled(true);
 		userMongoRepository.save(user);
-		tokenService.deleteByUsernameAndTokenType(token.getUsername(), token.getTokenType());
+		tokenService.deleteByUsernameAndTokenType(token.getUsername(), TokenType.EMAILVERIFICATION);
 		return;
 
 	}
