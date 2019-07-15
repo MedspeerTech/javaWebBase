@@ -116,6 +116,7 @@ public class TokenService {
 
 		if (days > tokenExpDays) {
 			
+			deleteToken(dbToken);
 			throw new TokenException("ExpiredToken");
 		} else {
 

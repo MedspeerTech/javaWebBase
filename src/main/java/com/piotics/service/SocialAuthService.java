@@ -3,6 +3,7 @@ package com.piotics.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,12 @@ public class SocialAuthService {
 
 	@Autowired
 	JwtTokenProvider jwtTokenProvider;
+	
+	@Autowired
+	InvitationService invitationService;
+	
+	@Autowired
+	TokenService tokenService;
 
 	@Autowired
 	ApplicationUserMongoRepository applicationUserMongoRepository;
@@ -46,69 +53,57 @@ public class SocialAuthService {
 	private ApplicationSocialUser applicationSocialUser;
 	private ApplicationUser applicationUser;
 
+	@Value("${invite.required}")
+	public boolean inviteRequired;
+
 	public String socialLogin(SocialUser socialUser) {
-		if (isInvited(socialUser)) {
 
-			Optional<ApplicationSocialUser> applicationSocialUser = applicationSocialUserMongoRepository
-					.findBySocialId(socialUser.getId());
-
-			if (applicationSocialUser.isPresent()) {
-				this.applicationSocialUser = applicationSocialUser.get();
-				Optional<ApplicationUser> applicationUser = applicationUserMongoRepository
-						.findById(this.applicationSocialUser.getId());
-				this.applicationUser = applicationUser.get();
-
-			} else {
-
-				this.applicationUser = applicationUserMongoRepository.findByUsername(socialUser.getEmail());
-				if (this.applicationUser == null) {
-					createApplicationUser(socialUser, UserRoles.ROLE_USER);
-//				createUserInfo(socialUser);
-				} else if (!(this.applicationUser.isEnabled())) {
-					this.applicationUser.setEnabled(true);
-					applicationUserMongoRepository.save(this.applicationUser);
-				}
-				ApplicationSocialUser newApplicationSocialUser = new ApplicationSocialUser(socialUser);
-				newApplicationSocialUser.setId(this.applicationUser.getId());
-				this.applicationSocialUser = applicationSocialUserMongoRepository.save(newApplicationSocialUser);
-
-				UserProfile userProfile = new UserProfile(socialUser.getEmail(), this.applicationUser.getId());
-				userProfileMongoRepository.save(userProfile);
-
-				Token inviteToken = tokenMongoRepository.findByUsernameAndTokenType(socialUser.getEmail(),
-						TokenType.INVITATION);
-				tokenMongoRepository.delete(inviteToken);
-			}
-
-			UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(this.applicationUser,
-					null, null);
-//			String token = jwtTokenProvider.generateToken(auth);
-
-//			return token;
-			return null;
-
-		} else {
+		if (inviteRequired && !invitationService.isInvited(socialUser.getEmail()))
 			throw new UserException("user not invited");
-		}
+		
+		proceedTosocialLogin(socialUser);
+
+		return null;
 	}
 
-	private boolean isInvited(SocialUser socialUser) {
+	private String proceedTosocialLogin(SocialUser socialUser) {
 
-		boolean bool = false;
+		Optional<ApplicationSocialUser> applicationSocialUser = applicationSocialUserMongoRepository
+				.findBySocialId(socialUser.getId());
 
-		if (socialUser.getEmail() != null) {
+		if (applicationSocialUser.isPresent()) {
+			this.applicationSocialUser = applicationSocialUser.get();
+			Optional<ApplicationUser> applicationUser = applicationUserMongoRepository
+					.findById(this.applicationSocialUser.getId());
+			this.applicationUser = applicationUser.get();
 
-			Invitation invitation = invitationMongoRepository.findByEmail(socialUser.getEmail());
+		} else {
 
-			if (invitation == null) {
+			this.applicationUser = applicationUserMongoRepository.findByUsername(socialUser.getEmail());
+			if (this.applicationUser == null) {
+				createApplicationUser(socialUser, UserRoles.ROLE_USER);
+//			createUserInfo(socialUser);
+			} else if (!(this.applicationUser.isEnabled())) {
+				this.applicationUser.setEnabled(true);
+				applicationUserMongoRepository.save(this.applicationUser);
+			}	
+			ApplicationSocialUser newApplicationSocialUser = new ApplicationSocialUser(socialUser);
+			newApplicationSocialUser.setId(this.applicationUser.getId());
+			this.applicationSocialUser = applicationSocialUserMongoRepository.save(newApplicationSocialUser);
 
-				bool = false;
-			} else {
+			UserProfile userProfile = new UserProfile(socialUser.getEmail(), this.applicationUser.getId());
+			userProfileMongoRepository.save(userProfile);
 
-				bool = true;
-			}
+			if (invitationService.isInvited(this.applicationSocialUser.getEmail()))
+				tokenService.deleteInviteTkenByUsername(this.applicationSocialUser.getEmail());
 		}
-		return bool;
+
+		UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(this.applicationUser, null,
+				null);
+//		String token = jwtTokenProvider.generateToken(auth);
+
+//		return token;
+		return null;
 	}
 
 //	private void createUserInfo(SocialUser socialUser) {

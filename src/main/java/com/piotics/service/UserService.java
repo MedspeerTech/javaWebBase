@@ -137,15 +137,20 @@ public class UserService {
 			throw new UserException("user not exist");
 
 		Token dbToken = tokenService.getTokenByUserNameAndTokenType(username, TokenType.PASSWORDRESET);
-		ApplicationUser appUser = userMongoRepository.findByEmail(username);
 
-		if (dbToken == null) {
+		if (dbToken != null && tokenService.isTokenValid(dbToken)) {
+			
+			mailService.sendMail(dbToken);
+		}
+		else {			
+			ApplicationUser appUser = userMongoRepository.findByEmail(username);
 			Token token = tokenService.getPasswordResetToken(username);
 			token.setUserId(appUser.getId());
 			tokenService.save(token);
 			mailService.sendMail(token);
 			return;
 		}
+		
 	}
 
 	public void resetPassword(PasswordReset passwordReset) {
