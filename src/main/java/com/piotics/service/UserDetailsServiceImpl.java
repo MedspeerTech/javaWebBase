@@ -2,6 +2,7 @@ package com.piotics.service;
 
 import java.util.Optional;
 
+import com.piotics.common.utils.UtilityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,7 +18,7 @@ import com.piotics.model.ApplicationUser;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
 	@Autowired
-	MailManager mailManager;
+	UtilityManager utilityManager;
 
 	private UserMongoRepository applicationUserMongoRepository;
 
@@ -30,7 +31,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		
 		ApplicationUser applicationUser = new ApplicationUser();
 		
-		if (mailManager.isEmail(username)) {
+		if (utilityManager.isEmail(username)) {
 			applicationUser = applicationUserMongoRepository.findByEmail(username);
 			if (applicationUser == null) {
 				throw new UsernameNotFoundException(username);

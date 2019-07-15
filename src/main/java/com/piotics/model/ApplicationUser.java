@@ -2,6 +2,7 @@ package com.piotics.model;
 
 import java.util.Collection;
 
+import com.piotics.common.utils.UtilityManager;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
@@ -17,8 +18,7 @@ import com.piotics.resources.SocialUser;
 @Document(value = "user_security")
 public class ApplicationUser implements UserDetails {
 
-	@Autowired
-	MailManager mailManager;
+
 	
 	@Id
 	private String id;
@@ -46,8 +46,7 @@ public class ApplicationUser implements UserDetails {
 	}
 
 	public ApplicationUser(String username,String password, UserRoles userRole,boolean enabled) {
-		
-		if (mailManager.isEmail(username)) {
+		if (new UtilityManager().isEmail(username)) {
 			this.email = username;
 		} else {
 			this.phone = username;

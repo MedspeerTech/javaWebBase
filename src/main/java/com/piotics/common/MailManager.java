@@ -109,18 +109,6 @@ public class MailManager {
 		return email;
 	}
 
-	public boolean isEmail(String userName) {
-		Pattern pattern = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
-		Matcher mat = pattern.matcher(userName);
-
-		if (mat.matches()) {
-
-			return true;
-		} else {
-
-			return false;
-		}
-	}
 
 	public EMail composeConversionFailureNotifcationMail(String mailContent, String id, String sourceLocation) {
 		EMail email = new EMail();

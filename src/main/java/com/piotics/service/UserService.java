@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import com.piotics.common.utils.UtilityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -50,7 +51,7 @@ public class UserService {
 	HttpServletRequestUtils httpServletRequestUtils;
 
 	@Autowired
-	MailManager mailManager;
+	UtilityManager utilityManager;
 
 	@Autowired
 	JwtTokenProvider jwtTokenProvider;
@@ -72,7 +73,7 @@ public class UserService {
 		if (isExistingUser(signUpUser.getUsername()))
 			throw new UserException("user already exists");
 
-		if (inviteRequired && !invitationService.isInvited(signUpUser.getUsername(), signUpUser.getToken()))
+		if (inviteRequired && signUpUser.getToken()!=null && !invitationService.isInvited(signUpUser.getUsername(), signUpUser.getToken()))
 			throw new UserException("user not invited");
 
 		proceedToSignUp(signUpUser);
@@ -90,7 +91,7 @@ public class UserService {
 			tokenService.deleteInviteToken(signUpUser.getUsername(), signUpUser.getToken());
 		} else {
 			
-			if (mailManager.isEmail(signUpUser.getUsername())) {
+			if (utilityManager.isEmail(signUpUser.getUsername())) {
 				newUser.setEnabled(false);
 				Token token = tokenService.getTokenForEmailVerification(newUser);
 				mailService.sendMail(token);
