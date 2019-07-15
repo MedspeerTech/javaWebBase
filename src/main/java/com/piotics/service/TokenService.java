@@ -16,7 +16,6 @@ import com.piotics.common.TokenType;
 import com.piotics.exception.TokenException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Token;
-import com.piotics.model.UserProfile;
 import com.piotics.repository.TokenMongoRepository;
 
 @Service
@@ -66,9 +65,9 @@ public class TokenService {
 		return tokenMongoRepository.save(token);
 	}
 
-	public Token getTokenFromDB(String username) {
-		
-		return tokenMongoRepository.findByUsername(username);
+	public Token getTokenFromDBWithTokenType(String username, TokenType tokenType) {
+
+		return tokenMongoRepository.findByUsernameAndTokenType(username,tokenType);
 
 	}
 

@@ -1,5 +1,5 @@
 package com.piotics.repository;
-//package com.piotics.Repository;
+//package com.piotics.repository;
 //
 //import org.springframework.data.mongodb.repository.MongoRepository;
 //

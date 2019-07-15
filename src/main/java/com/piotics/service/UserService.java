@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import com.google.firebase.auth.FirebaseToken;
 import com.piotics.common.MailManager;
-import com.piotics.common.TimeManager;
 import com.piotics.common.TokenType;
 import com.piotics.common.utils.BCryptPasswordUtils;
 import com.piotics.common.utils.HttpServletRequestUtils;
@@ -30,7 +29,6 @@ import com.piotics.model.SignUpUser;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
 import com.piotics.repository.ApplicationUserMongoRepository;
-import com.piotics.repository.FileMetaMongoRepository;
 import com.piotics.repository.UserMongoRepository;
 
 @Service
@@ -78,14 +76,12 @@ public class UserService {
 			if (inviteRequired) {
 
 				if (invitationService.isInvited(signUpUser.getUsername(), signUpUser.getToken())) {
-
 					proceedToSignUp(signUpUser, req);
 				} else {
 					throw new UserException("user not invited");
 				}
 
 			} else {
-
 				proceedToSignUp(signUpUser, req);
 			}
 		} else {
@@ -96,9 +92,9 @@ public class UserService {
 
 	private void proceedToSignUp(SignUpUser signUpUser, HttpServletRequest req) throws Exception {
 
-		String password = bCryptPasswordUtils.encodePassword(signUpUser.getPassword());
+		String encodedPassword = bCryptPasswordUtils.encodePassword(signUpUser.getPassword());
 
-		ApplicationUser newUser = new ApplicationUser(password, UserRoles.ROLE_USER);
+		ApplicationUser newUser = new ApplicationUser(encodedPassword, UserRoles.ROLE_USER);
 		newUser = userMongoRepository.save(newUser);
 
 		if (mailManager.isEmail(signUpUser.getUsername())) {
@@ -162,7 +158,7 @@ public class UserService {
 
 	public void verifyEmail(Token token) {
 
-		Token dbToken = tokenService.getTokenFromDB(token.getUsername());
+		Token dbToken = tokenService.getTokenFromDBWithTokenType(token.getUsername(), token.getTokenType());
 
 		if (dbToken.getTokenType().equals(TokenType.EMAILVERIFICATION)) {
 
