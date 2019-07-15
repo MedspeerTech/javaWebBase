@@ -30,8 +30,8 @@ public class UserController {
 	UserService userService;
 
 	@RequestMapping(value = "/signUp", method = RequestMethod.POST)
-	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser, HttpServletRequest req) throws Exception {
-		userService.signUp(signUpUser, req);
+	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser) throws Exception {
+		userService.signUp(signUpUser);
 		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
 

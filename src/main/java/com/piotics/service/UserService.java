@@ -60,70 +60,40 @@ public class UserService {
 
 	@Autowired
 	InvitationService invitationService;
-	
+
 	@Autowired
 	MailService mailService;
 
 	@Value("${invite.required}")
 	public boolean inviteRequired;
 
-	
+	public void signUp(SignUpUser signUpUser) throws Exception {
 
-	public void signUp(SignUpUser signUpUser, HttpServletRequest req) throws Exception {
-
-		if (!isExistingUser(signUpUser.getUsername())) {
-
-			if (inviteRequired) {
-
-				if (invitationService.isInvited(signUpUser.getUsername(), signUpUser.getToken())) {
-					proceedToSignUp(signUpUser, req);
-				} else {
-					throw new UserException("user not invited");
-				}
-
-			} else {
-				proceedToSignUp(signUpUser, req);
-			}
-		} else {
+		if (isExistingUser(signUpUser.getUsername()))
 			throw new UserException("user already exists");
-		}
+
+		if (inviteRequired && !invitationService.isInvited(signUpUser.getUsername(), signUpUser.getToken()))
+			throw new UserException("user not invited");
+
+		proceedToSignUp(signUpUser);
+		
 		return;
 	}
 
-	private void proceedToSignUp(SignUpUser signUpUser, HttpServletRequest req) throws Exception {
+	private void proceedToSignUp(SignUpUser signUpUser) throws Exception {
 
 		String encodedPassword = bCryptPasswordUtils.encodePassword(signUpUser.getPassword());
 
-		ApplicationUser newUser = new ApplicationUser(encodedPassword, UserRoles.ROLE_USER);
-		newUser = userMongoRepository.save(newUser);
+		ApplicationUser newUser = new ApplicationUser(signUpUser.getUsername(),encodedPassword, UserRoles.ROLE_USER, true);
 
-		if (mailManager.isEmail(signUpUser.getUsername())) {
-			newUser.setEmail(signUpUser.getUsername());
-		} else {
-			newUser.setPhone(signUpUser.getUsername());
-		}
-
-		if (signUpUser.getToken().getToken() != null) {
-			newUser.setEnabled(true);
-
+		if (signUpUser.getToken() != null) {
 			tokenService.deleteInviteToken(signUpUser.getUsername(), signUpUser.getToken());
 		} else {
-
-			newUser.setEnabled(false);
-
-			tokenService.deleteInviteToken(signUpUser.getUsername(), null);
-
-			String clientBrowser = httpServletRequestUtils.getClientBrowser(req);
-			boolean remember = Boolean.parseBoolean(req.getHeader("Remember"));
-
-			if (!remember || !clientBrowser.contains("Android") || !clientBrowser.contains("IPhone")) {
-				if (mailManager.isEmail(signUpUser.getUsername())) {
-
-					Token token = tokenService.getTokenForEmailVerification(newUser);
-					mailService.sendMail(token);
-				}
-			} else {
-				newUser.setEnabled(true);
+			
+			if (mailManager.isEmail(signUpUser.getUsername())) {
+				newUser.setEnabled(false);
+				Token token = tokenService.getTokenForEmailVerification(newUser);
+				mailService.sendMail(token);
 			}
 		}
 		newUser = userMongoRepository.save(newUser);
@@ -154,61 +124,31 @@ public class UserService {
 
 	}
 
-	
-
 	public void verifyEmail(Token token) {
 
 		Token dbToken = tokenService.getTokenFromDBWithTokenType(token.getUsername(), token.getTokenType());
 
-		if (dbToken.getTokenType().equals(TokenType.EMAILVERIFICATION)) {
-
-			if (dbToken == null) {
-				if (userMongoRepository.findByEmail(token.getUsername()) == null)
-					throw new UserException("UnRegistered");
-				else
-					throw new UserException("ExistingUser");
-			}
-
-			tokenService.isTokenValid(dbToken);
-			if (!dbToken.getToken().equals(token.getToken()))
-				throw new TokenException("InvalidToken");
-
-			ApplicationUser user = userMongoRepository.findById(dbToken.getUserId()).get();
-			user.setEnabled(true);
-			userMongoRepository.save(user);
-			tokenService.deleteByUsernameAndTokenAndTokenType(token.getUsername(), token.getToken(),
-					token.getTokenType());
-
-		} else if (dbToken.getTokenType().equals(TokenType.MAIL_RESET)) {
-
-			if (dbToken == null) {
-				if (userMongoRepository.findByEmail(token.getUsername()) == null)
-					throw new UserException("UnRegistered");
-				else
-					throw new UserException("ExistingUser");
-			}
-
-			tokenService.isTokenValid(dbToken);
-			if (!dbToken.getToken().equals(token.getToken()))
-				throw new TokenException("InvalidToken");
-
-			ApplicationUser user = userMongoRepository.findById(dbToken.getUserId()).get();
-			user.setEmail(token.getUsername());
-			userMongoRepository.save(user);
-
-			UserProfile userProfile = userProfileService.getProfile(dbToken.getUserId());
-			userProfile.setEmail(token.getUsername());
-			userProfileService.save(userProfile);
-
-			tokenService.deleteByUsernameAndTokenAndTokenType(token.getUsername(), token.getToken(),
-					token.getTokenType());
+		if (dbToken == null) {
+			if (userMongoRepository.findByEmail(token.getUsername()) == null)
+				throw new UserException("UnRegistered");
+			else
+				throw new UserException("ExistingUser");
 		}
+
+		tokenService.isTokenValid(dbToken);
+		if (!dbToken.getToken().equals(token.getToken()))
+			throw new TokenException("InvalidToken");
+
+		ApplicationUser user = userMongoRepository.findById(dbToken.getUserId()).get();
+		user.setEnabled(true);
+		userMongoRepository.save(user);
+		tokenService.deleteByUsernameAndTokenAndTokenType(token.getUsername(), token.getToken(), token.getTokenType());
 
 		return;
 
 	}
 
-	public void forgotPassword(@Valid String username) throws Exception {
+	public void forgotPassword(String username) throws Exception {
 
 		if (isExistingUser(username)) {
 
@@ -229,7 +169,7 @@ public class UserService {
 
 	}
 
-	public void resetPassword(@Valid PasswordReset passwordReset) {
+	public void resetPassword(PasswordReset passwordReset) {
 		Token dbToken = tokenService.getTokenByUserNameAndTokenType(passwordReset.getUsername(),
 				TokenType.PASSWORDRESET);
 
@@ -270,7 +210,7 @@ public class UserService {
 			try {
 				SignUpUser signUpUser = new SignUpUser(decodedToken.getEmail(), "welcome");
 
-				signUp(signUpUser, req);
+				signUp(signUpUser);
 
 				String token = jwtTokenProvider.generateToken(authentication);
 				res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);

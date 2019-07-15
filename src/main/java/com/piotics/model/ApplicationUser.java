@@ -3,18 +3,23 @@ package com.piotics.model;
 import java.util.Collection;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.piotics.common.MailManager;
 import com.piotics.constants.UserRoles;
 import com.piotics.resources.SocialUser;
 
 @Document(value = "user_security")
 public class ApplicationUser implements UserDetails {
 
+	@Autowired
+	MailManager mailManager;
+	
 	@Id
 	private String id;
 
@@ -40,10 +45,17 @@ public class ApplicationUser implements UserDetails {
 		this.role =role;
 	}
 
-	public ApplicationUser(String password, UserRoles userRole) {
+	public ApplicationUser(String username,String password, UserRoles userRole,boolean enabled) {
+		
+		if (mailManager.isEmail(username)) {
+			this.email = username;
+		} else {
+			this.phone = username;
+		}
 		
 		this.password = password;
 		this.role = userRole;
+		this.enabled = enabled;
 	}
 
 	public String getId() {
