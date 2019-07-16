@@ -208,4 +208,9 @@ public class UserService {
 		return userMongoRepository.findById(id).get();
 	}
 
+	public ApplicationUser save(ApplicationUser applicationUser) {
+
+		return userMongoRepository.save(applicationUser);
+	}
+
 }

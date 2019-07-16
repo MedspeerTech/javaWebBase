@@ -70,5 +70,60 @@ public class UserProfileService {
 		return dbUserProfile;
 	}
 
+	public UserProfile changeMail(ApplicationUser applicationUser, String mail) throws Exception {
+
+		if (!utilityManager.isEmail(mail))
+			throw new Exception("not a valid email");
+
+		if (userService.isExistingUser(mail))
+			throw new UserException("email already registered");
+
+		if (applicationUser.getEmail() == mail)
+			throw new Exception("no change");
+
+		try {
+
+			Token resetMailToken = tokenService.getTokenByUserNameAndTokenType(mail, TokenType.MAIL_RESET);
+
+			if (resetMailToken != null && tokenService.isTokenValid(resetMailToken)) {
+
+				mailService.sendMail(resetMailToken);
+			} else {
+
+				resetMailToken = tokenService.getMailResetToken(applicationUser, mail);
+				mailService.sendMail(resetMailToken);
+			}
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+			throw e;
+		}
+
+		return null;
+	}
+
+	public void verifyNewMail(ApplicationUser applicationUser, String token) throws Exception {
+
+		Token dbToken = tokenService.getTokenFromDbByUserIdAndTokenType(applicationUser.getId(), TokenType.MAIL_RESET);
+
+		if (dbToken == null)
+			throw new Exception("no valid request for change mail");
+
+		tokenService.isTokenValid(dbToken);
+
+		if (!dbToken.getToken().equals(token))
+			throw new TokenException("InvalidToken");
+
+		applicationUser.setEmail(dbToken.getUsername());
+		userService.save(applicationUser);
+
+		UserProfile userProfile = getProfile(applicationUser.getId());
+		userProfile.setEmail(dbToken.getUsername());
+		save(userProfile);
+
+		tokenService.deleteToken(dbToken);
+	}
+
 
 }

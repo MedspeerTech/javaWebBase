@@ -17,19 +17,13 @@ public class Token {
 	@Id
 	private String id;
 	private String userId;
-	
-	@NotNull(message = "username should not be null")
-	@NotEmpty(message = "usernmae should not be empty")
 	private String username;
-	
+
 	@NotNull(message = "token should not be null")
 	@NotEmpty(message = "token should not be empty")
 	private String token;
 	
-	private Date creationDate;
-	
-	@NotNull(message = "token type should not be null")
-	@NotEmpty(message = "token type should not be empty")
+	private Date creationDate;	
 	private TokenType tokenType;
 
 	public Token(String userId, String username, String token, TokenType tokenType, Date currentTimestamp) {
@@ -50,7 +44,7 @@ public class Token {
 	}
 
 	public Token(String username, String token, TokenType tokenType, Date date) {
-		
+
 		this.username = username;
 		this.token = token;
 		this.tokenType = tokenType;
