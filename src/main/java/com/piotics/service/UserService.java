@@ -103,7 +103,7 @@ public class UserService {
 		userProfileService.save(userProfile);
 	}
 
-	public boolean isExistingUser(String userName) throws Exception {
+	public boolean isExistingUser(String userName) {
 		return  !(applicationUserMongoRepository.findByEmail(userName) == null && applicationUserMongoRepository.findByPhone(userName) == null);
 
 	}

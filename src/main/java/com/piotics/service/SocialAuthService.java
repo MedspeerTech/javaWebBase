@@ -31,10 +31,10 @@ public class SocialAuthService {
 
 	@Autowired
 	JwtTokenProvider jwtTokenProvider;
-	
+
 	@Autowired
 	InvitationService invitationService;
-	
+
 	@Autowired
 	TokenService tokenService;
 
@@ -50,6 +50,9 @@ public class SocialAuthService {
 	@Autowired
 	TokenMongoRepository tokenMongoRepository;
 
+	@Autowired
+	UserService userService;
+
 	private ApplicationSocialUser applicationSocialUser;
 	private ApplicationUser applicationUser;
 
@@ -58,11 +61,15 @@ public class SocialAuthService {
 
 	public String socialLogin(SocialUser socialUser) {
 
-		if (inviteRequired && !invitationService.isInvited(socialUser.getEmail()))
-			throw new UserException("user not invited");
-		
-		proceedTosocialLogin(socialUser);
+		if (!userService.isExistingUser(socialUser.getEmail())) {
 
+			if (inviteRequired && !invitationService.isInvited(socialUser.getEmail()))
+				throw new UserException("user not invited");
+			else
+				proceedTosocialLogin(socialUser);
+		}else {
+			proceedTosocialLogin(socialUser);
+		}
 		return null;
 	}
 
@@ -86,7 +93,7 @@ public class SocialAuthService {
 			} else if (!(this.applicationUser.isEnabled())) {
 				this.applicationUser.setEnabled(true);
 				applicationUserMongoRepository.save(this.applicationUser);
-			}	
+			}
 			ApplicationSocialUser newApplicationSocialUser = new ApplicationSocialUser(socialUser);
 			newApplicationSocialUser.setId(this.applicationUser.getId());
 			this.applicationSocialUser = applicationSocialUserMongoRepository.save(newApplicationSocialUser);
