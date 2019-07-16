@@ -2,6 +2,9 @@ package com.piotics.model;
 
 import java.util.Date;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import org.springframework.data.annotation.Id;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -14,9 +17,19 @@ public class Token {
 	@Id
 	private String id;
 	private String userId;
+	
+	@NotNull(message = "username should not be null")
+	@NotEmpty(message = "usernmae should not be empty")
 	private String username;
+	
+	@NotNull(message = "token should not be null")
+	@NotEmpty(message = "token should not be empty")
 	private String token;
+	
 	private Date creationDate;
+	
+	@NotNull(message = "token type should not be null")
+	@NotEmpty(message = "token type should not be empty")
 	private TokenType tokenType;
 
 	public Token(String userId, String username, String token, TokenType tokenType, Date currentTimestamp) {

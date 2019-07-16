@@ -25,15 +25,15 @@ import com.piotics.model.Token;
 import com.piotics.service.UserService;
 
 @RestController
-@RequestMapping(value="/user")
+@RequestMapping(value = "/user")
 public class UserController {
-	
+
 	@Autowired
 	UserService userService;
 
 	@Autowired
 	HttpServletRequestUtils httpServletRequestUtils;
-	
+
 	@RequestMapping(value = "/signUp", method = RequestMethod.POST)
 	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser) throws Exception {
 		userService.signUp(signUpUser);
@@ -47,7 +47,7 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/forgotPassword", method = RequestMethod.GET)
-	public ResponseEntity forgotPassword(@Valid @RequestParam String username) throws Exception {
+	public ResponseEntity forgotPassword(@RequestParam String username) {
 		userService.forgotPassword(username);
 		return new ResponseEntity(HttpStatus.OK);
 	}
@@ -59,7 +59,8 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/verifyIdToken", method = RequestMethod.POST)
-	public ResponseEntity verifyIdToken(Authentication authentication, @RequestParam String idToken, HttpServletResponse res) throws FirebaseAuthException {
+	public ResponseEntity verifyIdToken(Authentication authentication, @RequestParam String idToken,
+			HttpServletResponse res) throws FirebaseAuthException {
 //		FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
 //		String uid = decodedToken.getUid();
 
@@ -70,11 +71,8 @@ public class UserController {
 		String token = jwtTokenProvider.generateToken(authentication);
 //		String token = userService.(authentication,uid);
 		httpServletRequestUtils.addHeader(res, token);
-		
 
 		return new ResponseEntity(HttpStatus.OK);
 	}
-	
-	
-	
+
 }

@@ -16,4 +16,6 @@ public interface TokenMongoRepository extends MongoRepository<Token, String> {
 
 	Token findByUsername(String username);
 
+	Token findByUserIdAndTokenType(String id, TokenType tokenType);
+
 }

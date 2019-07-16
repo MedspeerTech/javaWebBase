@@ -70,7 +70,7 @@ public class UserService {
 		if (isExistingUser(signUpUser.getUsername()))
 			throw new UserException("user already exists");
 
-		if (inviteRequired && signUpUser.getToken()!=null && !invitationService.isInvited(signUpUser.getUsername()))
+		if (inviteRequired && signUpUser.getToken() != null && !invitationService.isInvited(signUpUser.getUsername()))
 			throw new UserException("user not invited");
 
 		proceedToSignUp(signUpUser);
@@ -90,9 +90,12 @@ public class UserService {
 			tokenService.deleteInviteTkenByUsername(signUpUser.getUsername());
 
 		if (utilityManager.isEmail(signUpUser.getUsername())) {
-			newUser.setEnabled(false);
-			token = tokenService.getTokenForEmailVerification(newUser);
-			mailService.sendMail(token);
+			
+			if (signUpUser.getToken() == null) {
+				newUser.setEnabled(false);
+				token = tokenService.getTokenForEmailVerification(newUser);
+				mailService.sendMail(token);
+			}
 		}
 
 		newUser = userMongoRepository.save(newUser);
@@ -104,7 +107,8 @@ public class UserService {
 	}
 
 	public boolean isExistingUser(String userName) {
-		return  !(applicationUserMongoRepository.findByEmail(userName) == null && applicationUserMongoRepository.findByPhone(userName) == null);
+		return !(applicationUserMongoRepository.findByEmail(userName) == null
+				&& applicationUserMongoRepository.findByPhone(userName) == null);
 
 	}
 
@@ -131,7 +135,7 @@ public class UserService {
 
 	}
 
-	public void forgotPassword(String username) throws Exception {
+	public void forgotPassword(String username) {
 
 		if (!isExistingUser(username))
 			throw new UserException("user not exist");
@@ -139,10 +143,9 @@ public class UserService {
 		Token dbToken = tokenService.getTokenByUserNameAndTokenType(username, TokenType.PASSWORDRESET);
 
 		if (dbToken != null && tokenService.isTokenValid(dbToken)) {
-			
+
 			mailService.sendMail(dbToken);
-		}
-		else {			
+		} else {
 			ApplicationUser appUser = userMongoRepository.findByEmail(username);
 			Token token = tokenService.getPasswordResetToken(username);
 			token.setUserId(appUser.getId());
@@ -150,7 +153,7 @@ public class UserService {
 			mailService.sendMail(token);
 			return;
 		}
-		
+
 	}
 
 	public void resetPassword(PasswordReset passwordReset) {

@@ -128,5 +128,10 @@ public class TokenService {
 
 		tokenMongoRepository.deleteByUsernameAndTokenType(username,tokenType);
 	}
+
+	public Token getTokenFromDbByUserIdAndTokenType(String id, TokenType tokenType) {
+
+		return tokenMongoRepository.findByUserIdAndTokenType(id,tokenType);
+	}
 	
 }
