@@ -1,8 +1,5 @@
 package com.piotics.service;
 
-import javax.validation.Valid;
-
-import org.apache.tools.ant.taskdefs.SendEmail;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,11 +7,9 @@ import org.springframework.stereotype.Service;
 import com.piotics.common.TokenType;
 import com.piotics.common.utils.BCryptPasswordUtils;
 import com.piotics.common.utils.UtilityManager;
-import com.piotics.exception.FileException;
 import com.piotics.exception.TokenException;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
-import com.piotics.model.FileMeta;
 import com.piotics.model.PasswordResetResource;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
@@ -123,6 +118,20 @@ public class UserProfileService {
 		save(userProfile);
 
 		tokenService.deleteToken(dbToken);
+	}
+
+	
+	public void changePassword(ApplicationUser applicationUser, PasswordResetResource passwordresetResource) throws Exception {
+
+		if(!bCryptPasswordUtils.isMatching(passwordresetResource.getPassword(), applicationUser.getPassword()))
+			throw new Exception("wrong password");
+		
+		if(bCryptPasswordUtils.isMatching(passwordresetResource.getNewPassword(), applicationUser.getPassword()))
+			throw new Exception("no change found");
+		
+		applicationUser.setPassword(bCryptPasswordUtils.encodePassword(passwordresetResource.getNewPassword()));
+		
+		userService.save(applicationUser);
 	}
 
 
