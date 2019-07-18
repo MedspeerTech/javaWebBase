@@ -74,7 +74,7 @@ public class UserProfileService {
 			throw new UserException("email already registered");
 
 		if (applicationUser.getEmail() == mail)
-			throw new Exception("no change");
+			throw new Exception("no change found");
 
 		try {
 

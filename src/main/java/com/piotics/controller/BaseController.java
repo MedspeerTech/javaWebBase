@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,9 +25,9 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.piotics.constants.MessageType;
 import com.piotics.resources.ExceptionResource;
+
 @ControllerAdvice
 public class BaseController {
 
@@ -38,12 +39,13 @@ public class BaseController {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public ExceptionResource processValidationError(MethodArgumentNotValidException ex) {
+	public ResponseEntity<ExceptionResource> processValidationError(MethodArgumentNotValidException ex) {
 		ex.printStackTrace();
 		BindingResult result = ex.getBindingResult();
-		FieldError error = result.getFieldError();
-
-		return processFieldError(error);
+//		FieldError error = result.getFieldError();
+		ObjectError error = result.getAllErrors().get(0);
+		ExceptionResource exceptionResource = new ExceptionResource(error.getDefaultMessage());
+		return new ResponseEntity<>(exceptionResource,HttpStatus.BAD_REQUEST);
 	}
 
 	private ExceptionResource processFieldError(FieldError error) {
@@ -87,19 +89,22 @@ public class BaseController {
 		logger.fatal("service unavailable - " + ex.getCause() + " - " + ex.getLocalizedMessage(), ex);
 		return new ResponseEntity(new Exception("Service Unavailable"), HttpStatus.SERVICE_UNAVAILABLE);
 	}
-	
+
 	@ExceptionHandler({ Exception.class })
 	public ResponseEntity<ExceptionResource> handleException(Exception ex) throws IOException {
-		
+
 		logger.log(Level.INFO, ex.getMessage(), ex);
 		ExceptionResource exceptionResource = new ExceptionResource(ex.getMessage());
-		
-		if(ex.getMessage().equals("wrong password"))
-			return new ResponseEntity<ExceptionResource>(exceptionResource,HttpStatus.BAD_REQUEST);
-		if(ex.getMessage().equals("no change found"))
-			return new ResponseEntity<ExceptionResource>(exceptionResource,HttpStatus.NOT_MODIFIED);	
-		
-		return new ResponseEntity<ExceptionResource>(exceptionResource,HttpStatus.EXPECTATION_FAILED);
+
+		if (ex.getMessage().equals("wrong password"))
+			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.BAD_REQUEST);
+		if (ex.getMessage().equals("no change found"))
+			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.NOT_MODIFIED);
+		if (ex.getMessage().equals("user not invited") || ex.getMessage().equals("no valid request for change mail")
+				|| ex.getMessage().equals("not a valid email") || ex.getMessage().equals("wrong password"))
+			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.FORBIDDEN);
+
+		return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.EXPECTATION_FAILED);
 	}
 
 }

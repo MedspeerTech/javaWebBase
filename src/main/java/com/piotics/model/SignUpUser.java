@@ -1,23 +1,36 @@
 package com.piotics.model;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import com.piotics.common.utils.UtilityManager;
+import com.piotics.custom.validator.ObjectValidation;
+import com.piotics.custom.validator.Validatable;
 
-public class SignUpUser {
+@ObjectValidation(message = "object not valid")
+public class SignUpUser implements Validatable {
 
-	@NotNull(message = "username should not be null")
-	@NotEmpty(message = "username should not be empty")
 	private String username;
-//	@NotNull(message = "password should not")
-//	@NotEmpty
 	private String password;
 	private Token token;
 
-	
 	public SignUpUser(String email, String password) {
 
 		this.username = email;
 		this.password = password;
+	}
+
+	@Override
+	public boolean isValid() {
+
+		UtilityManager utilityManager = new UtilityManager();
+		
+		if (username == null)
+			return false;
+		if (utilityManager.isEmail(username))
+			if (password != null)
+				return true;
+			else
+				return false;
+		else
+			return true;
 	}
 
 	public String getUsername() {
