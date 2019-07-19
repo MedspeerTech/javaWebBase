@@ -4,75 +4,72 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.piotics.exception.UserException;
+import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Token;
 
 @Service
 public class AdminService {
-	
+
 	@Autowired
 	UserService userService;
-	
+
 	@Autowired
 	TokenService tokenService;
-	
+
 	@Autowired
 	InvitationService invitationService;
-	
+
 	@Autowired
 	MailService mailService;
-	
-	public Invitation invite(Invitation invitation) throws Exception {
+
+	@Autowired
+	NotificationService notificationService;
+
+	public Invitation invite(ApplicationUser applicationUser, Invitation invitation) throws Exception {
 
 		String phone = invitation.getPhone();
 		String email = invitation.getEmail();
 
 		if (email != null && !email.isEmpty()) {
-			if (!userService.isExistingUser(email)) {
 
-				if (!invitationService.isInvited(email)) {
+			sendInvite(email, invitation);
 
-					Token token = tokenService.getInviteToken(invitation.getEmail());
-					token = tokenService.save(token);
-
-					if (invitation.getEmail() != null) {
-
-						mailService.sendMail(token);
-					}
-
-					invitation.setToken(token);
-					invitation = invitationService.save(invitation);
-
-				} else {
-					throw new UserException("user already invited");
-				}
-
-			} else {
-				throw new UserException("existing user");
-			}
 		} else if (phone != null && !phone.isEmpty()) {
 
-			if (!userService.isExistingUser(phone)) {
+			sendInvite(phone, invitation);
 
-				// user not exist continue signup
-
-				if (!invitationService.isInvited(phone)) {
-
-					Token token = tokenService.getInviteToken(invitation.getPhone());
-					token = tokenService.save(token);
-
-					invitation.setToken(token);
-					invitation = invitationService.save(invitation);
-
-				} else {
-					throw new UserException("user already invited");
-				}
-
-			} else {
-				throw new UserException("conflict");
-			}
 		} else {
 			throw new UserException("username not provided");
+		}
+
+		notificationService.notifyAdminsOnUserInvite(applicationUser, invitation);
+		return invitation;
+	}
+
+	private Invitation sendInvite(String username, Invitation invitation) {
+
+		if (!userService.isExistingUser(username)) {
+
+			if (!invitationService.isInvited(username)) {
+
+				Token token = tokenService.getInviteToken(username);
+				token = tokenService.save(token);
+
+				if (invitation.getEmail() != null) {
+
+					mailService.sendMail(token);
+				}
+
+				invitation.setToken(token);
+				invitation = invitationService.save(invitation);
+
+			} else {
+				throw new UserException("user already invited");
+			}
+
+		} else {
+			throw new UserException("existing user");
 		}
 
 		return invitation;
