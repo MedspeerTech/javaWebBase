@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.piotics.common.NotificationType;
+import com.piotics.common.utils.UtilityManager;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Notification;
@@ -20,6 +21,9 @@ public class NotificationService {
 
 //	@Autowired
 //	NotificationMongoRepository notificationMongoRepository;
+	
+	@Autowired
+	UtilityManager utilityManager;
 
 	@Autowired
 	UserService userService;
@@ -40,8 +44,10 @@ public class NotificationService {
 	public void addNotification(UserShort owner, NotificationType notificationType, String itemId,
 			List<UserShort> notifyTo) {
 
+		
 		Notification notification = new Notification(owner, notificationType, itemId);
-
+		notification.setId(utilityManager.generateObjectId());
+		
 		for (UserShort userShort : notifyTo) {
 
 			if (!userShort.getId().equals(owner.getId())) {
