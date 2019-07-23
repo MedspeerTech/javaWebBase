@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TimeManager {
 
-    public static ZonedDateTime getCurrentTimestamp(){//      final Date currentTime = new Date();
+	public static ZonedDateTime getCurrentTimestamp() {// final Date currentTime = new Date();
 //
 //      final SimpleDateFormat sdf =
 //              new SimpleDateFormat("EEE, MMM d, yyyy hh:mm:ss a z");
@@ -17,11 +17,10 @@ public class TimeManager {
 //      sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
 //      System.out.println("GMT time: " + sdf.format(currentTime));
 
-      ZonedDateTime currentTime = ZonedDateTime.now();
-      ZoneOffset off=currentTime.getOffset();
-      currentTime=currentTime.minus(off.getTotalSeconds(), ChronoUnit.SECONDS);
+		ZonedDateTime currentTime = ZonedDateTime.now();
+		ZoneOffset off = currentTime.getOffset();
+		currentTime = currentTime.minus(off.getTotalSeconds(), ChronoUnit.SECONDS);
 
-      return currentTime;
-    }
-
+		return currentTime;
+	}
 }

@@ -4,37 +4,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-
-import com.piotics.common.utils.UtilityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.google.firebase.auth.FirebaseToken;
-import com.piotics.common.MailManager;
-import com.piotics.common.NotificationType;
 import com.piotics.common.TokenType;
 import com.piotics.common.utils.BCryptPasswordUtils;
 import com.piotics.common.utils.HttpServletRequestUtils;
+import com.piotics.common.utils.UtilityManager;
 import com.piotics.config.JwtTokenProvider;
 import com.piotics.constants.UserRoles;
 import com.piotics.exception.TokenException;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
-import com.piotics.model.Invitation;
 import com.piotics.model.PasswordReset;
 import com.piotics.model.SignUpUser;
 import com.piotics.model.Token;
-import com.piotics.model.UserNotification;
 import com.piotics.model.UserProfile;
 import com.piotics.model.UserShort;
 import com.piotics.repository.ApplicationUserMongoRepository;
 import com.piotics.repository.UserMongoRepository;
-import com.piotics.repository.UserNotificationMongoRepository;
 import com.piotics.repository.UserShortMongoRepository;
 
 @Service
@@ -69,10 +60,10 @@ public class UserService {
 
 	@Autowired
 	MailService mailService;
-	
+
 	@Autowired
 	UserShortMongoRepository userShortMongoRepository;
-	
+
 	@Autowired
 	NotificationService notificationService;
 
@@ -104,7 +95,7 @@ public class UserService {
 			tokenService.deleteInviteTkenByUsername(signUpUser.getUsername());
 
 		if (utilityManager.isEmail(signUpUser.getUsername())) {
-			
+
 			if (signUpUser.getToken() == null) {
 				newUser.setEnabled(false);
 				token = tokenService.getTokenForEmailVerification(newUser);
@@ -118,10 +109,6 @@ public class UserService {
 
 		UserProfile userProfile = new UserProfile(newUser.getId(), newUser.getEmail(), newUser.getPhone());
 		userProfileService.save(userProfile);
-		
-		UserNotification userNotification = new UserNotification(newUser.getId(),new ArrayList<>());
-		notificationService.save(userNotification);
-		
 	}
 
 	public boolean isExistingUser(String userName) {
@@ -232,24 +219,22 @@ public class UserService {
 	}
 
 	public List<UserShort> getUserShortOfAdmins() {
-		
+
 		List<ApplicationUser> adminUsers = userMongoRepository.findByRole(UserRoles.ROLE_ADMIN);
-		
+
 		List<UserShort> adminUserShortLi = new ArrayList<UserShort>();
-		
-		for(ApplicationUser admin : adminUsers) {
-			
+
+		for (ApplicationUser admin : adminUsers) {
+
 			adminUserShortLi.add(userShortMongoRepository.findById(admin.getId()).get());
 		}
-		
+
 		return adminUserShortLi;
 	}
 
 	public UserShort getUserShort(String id) {
-		
+
 		return userShortMongoRepository.findById(id).get();
 	}
-
-	
 
 }
