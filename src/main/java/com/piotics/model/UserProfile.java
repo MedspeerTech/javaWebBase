@@ -12,11 +12,11 @@ import com.piotics.constants.Gender;
 public class UserProfile {
 
 	@Id
-	@NotNull(value="id should not be null")
-	@NotEmpty(message="id should not be empty")
+	@NotNull(value = "id should not be null")
+	@NotEmpty(message = "id should not be empty")
 	private String id;
-	@NotNull(value="username Should not be null")
-	@NotEmpty(message="username should not be empty")
+	@NotNull(value = "username Should not be null")
+	@NotEmpty(message = "username should not be empty")
 	private String username;
 	private String fileId;
 	private String email;
@@ -25,7 +25,7 @@ public class UserProfile {
 	private String about;
 	private String designation;
 	private String location;
-	
+	private int newNotifications;
 
 	public UserProfile() {
 
@@ -114,6 +114,13 @@ public class UserProfile {
 	public void setLocation(String location) {
 		this.location = location;
 	}
-	
-	
+
+	public int getNewNotifications() {
+		return newNotifications;
+	}
+
+	public void setNewNotifications(int newNotifications) {
+		this.newNotifications = newNotifications;
+	}
+
 }

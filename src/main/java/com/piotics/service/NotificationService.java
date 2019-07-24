@@ -15,6 +15,7 @@ import com.piotics.model.Invitation;
 import com.piotics.model.Notification;
 import com.piotics.model.UserShort;
 import com.piotics.repository.NotificationMongoRepository;
+import com.piotics.repository.NotificationMongoTemplateImpl;
 import com.piotics.resources.NotificationResource;;
 
 @Service
@@ -32,6 +33,9 @@ public class NotificationService {
 	@Autowired
 	TimeManager timeManager;
 
+	@Autowired
+	NotificationMongoTemplateImpl notificationMongoTemplateImpl;
+
 	public void notifyAdminsOnUserInvite(ApplicationUser applicationUser, Invitation item) {
 		UserShort owner = userService.getUserShort(applicationUser.getId());
 		List<UserShort> notifyTo = userService.getUserShortOfAdmins();
@@ -48,6 +52,7 @@ public class NotificationService {
 				Notification notification = new Notification(owner, userShort, notificationType, item.getId());
 //				notification.setTest(item.getEmail());
 				notificationMongoRepository.save(notification);
+				notificationMongoTemplateImpl.updateUserNotificationCount(notification);
 			}
 		}
 
@@ -60,5 +65,12 @@ public class NotificationService {
 				.findTop10ByUserToNotifyIdAndReadFalseOrderByCreatedOnDesc(applicationUser.getId(), pageable);
 
 		return new NotificationResource(notifications);
+	}
+
+	public void readNotification(Notification notification) {
+
+		notification = notificationMongoRepository.findById(notification.getId()).get();
+		notification.setRead(true);
+		notificationMongoRepository.save(notification);
 	}
 }

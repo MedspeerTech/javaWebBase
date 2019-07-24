@@ -1,14 +1,11 @@
 package com.piotics.model;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Date;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.piotics.constants.FileType;
-import com.piotics.model.FileMeta;
 
 @Document(collection="conversion")
 public class Conversion {

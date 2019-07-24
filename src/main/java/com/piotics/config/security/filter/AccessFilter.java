@@ -6,16 +6,14 @@ import org.springframework.stereotype.Component;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.UserProfile;
 
-
-
 @Component("AccessFilter")
 public class AccessFilter {
+
 	
-	public boolean isSessionUser(Authentication authentication,UserProfile userProfile) {
-		
+	public boolean hasAccess(Authentication authentication, String userId) {
+
 		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
-		
-		return (applicationUser.getId() == userProfile.getId());
+		return (applicationUser.getId().equals(userId));
 	}
 
 }

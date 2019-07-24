@@ -13,4 +13,7 @@ public interface NotificationMongoRepository extends MongoRepository<Notificatio
 	
 	List<Notification> findTop10ByUserToNotifyIdAndReadFalseOrderByCreatedOnDesc(String id, Pageable pageable);
 
+	Notification findByUserToNotifyIdAndId(String userToNotifyId, String id);
+
 }
+ 

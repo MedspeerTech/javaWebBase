@@ -5,8 +5,10 @@ import java.util.Date;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.IndexDirection;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.google.firebase.database.annotations.NotNull;
 import com.piotics.common.NotificationType;
 import com.piotics.common.TimeManager;
 
@@ -14,8 +16,12 @@ import com.piotics.common.TimeManager;
 public class Notification {
 
 	@Id
+	@NotNull
 	private String id;
+	
+	@DBRef
 	private UserShort owner;
+	@DBRef
 	private UserShort userToNotify;
 	private String itemId;
 	private NotificationType type;

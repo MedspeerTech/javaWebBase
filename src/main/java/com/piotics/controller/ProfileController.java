@@ -28,7 +28,7 @@ public class ProfileController extends BaseController {
 	UserProfileService userProfileService;
 
 	@RequestMapping(value = "/save", method = RequestMethod.POST)
-	@PreAuthorize("@AccessFilter.isSessionUser(authentication,#userProfile")
+	@PreAuthorize("@AccessFilter.hasAccess(authentication,#userProfile.getId())")
 	public ResponseEntity<UserProfile> saveProfile(@Valid @RequestBody UserProfile userProfile) {
 		
 		userProfile = userProfileService.saveProfile(userProfile);
