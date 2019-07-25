@@ -25,13 +25,10 @@ public class NotificationMongoTemplateImpl implements NotificationMongoTemplate 
 	@Autowired
 	MongoOperations mongoOperations;
 
-	@Autowired
-	NotificationDocument notificationDocument;
-
 	@Override
 	public UserProfile updateUserNotificationCount(Notification notification) {
 		Query query = new Query(Criteria.where("id").is(notification.getUserToNotify().getId()));
-		Update update = new Update().inc(notificationDocument.COUNT, 1);
+		Update update = new Update().inc(NotificationDocument.COUNT, 1);
 
 		return mongoTemplate.findAndModify(query, update, UserProfile.class);
 	}
@@ -65,7 +62,7 @@ public class NotificationMongoTemplateImpl implements NotificationMongoTemplate 
 			query.addCriteria(criteria);
 
 			Update update = new Update();
-			update.set(notificationDocument.COUNT, 1);
+			update.set(NotificationDocument.COUNT, 1);
 
 			bulkOps.updateOne(query, update);
 
