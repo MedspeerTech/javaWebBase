@@ -13,6 +13,7 @@ import com.piotics.common.utils.UtilityManager;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Notification;
+import com.piotics.model.UserProfile;
 import com.piotics.model.UserShort;
 import com.piotics.repository.NotificationMongoRepository;
 import com.piotics.repository.NotificationMongoTemplateImpl;
@@ -32,6 +33,9 @@ public class NotificationService {
 
 	@Autowired
 	TimeManager timeManager;
+	
+	@Autowired
+	UserProfileService userProfileService;
 
 	@Autowired
 	NotificationMongoTemplateImpl notificationMongoTemplateImpl;
@@ -62,15 +66,18 @@ public class NotificationService {
 
 		Pageable pageable = new PageRequest(pageNo - 1, 10);
 		List<Notification> notifications = notificationMongoRepository
-				.findTop10ByUserToNotifyIdAndReadFalseOrderByCreatedOnDesc(applicationUser.getId(), pageable);
+				.findTop10ByUserToNotifyIdOrderByCreatedOnDesc(applicationUser.getId(), pageable);
 
 		return new NotificationResource(notifications);
 	}
 
 	public void readNotification(Notification notification) {
+		
+		notificationMongoTemplateImpl.markAsReadNotifcation(notification.getId());
+	}
 
-		notification = notificationMongoRepository.findById(notification.getId()).get();
-		notification.setRead(true);
-		notificationMongoRepository.save(notification);
+	public void resetNewNotificationCount(ApplicationUser applicationUser) {
+
+		notificationMongoTemplateImpl.resetUserNotificationCount(applicationUser.getId());
 	}
 }

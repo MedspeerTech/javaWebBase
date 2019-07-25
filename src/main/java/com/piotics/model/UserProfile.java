@@ -27,9 +27,7 @@ public class UserProfile {
 	private String location;
 	private int newNotifications;
 
-	public UserProfile() {
-
-	}
+	public UserProfile() {}
 
 	public UserProfile(String email, String id) {
 		this.id = id;

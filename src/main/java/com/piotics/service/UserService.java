@@ -236,5 +236,4 @@ public class UserService {
 
 		return userShortMongoRepository.findById(id).get();
 	}
-
 }

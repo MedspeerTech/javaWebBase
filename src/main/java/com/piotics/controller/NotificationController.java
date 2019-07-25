@@ -42,4 +42,11 @@ public class NotificationController {
 		notificationService.readNotification(notification);
 		return new ResponseEntity<> (HttpStatus.OK);
 	}
+	
+	@RequestMapping(value = "/resetCount", method = RequestMethod.POST)
+	public ResponseEntity<Notification> resetNewNotificationCount(Principal principal){	
+		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
+		notificationService.resetNewNotificationCount(applicationUser);
+		return new ResponseEntity<> (HttpStatus.OK);
+	}
 }

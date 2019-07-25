@@ -24,4 +24,19 @@ public class NotificationMongoTemplateImpl implements NotificationMongoTemplate 
 		return mongoTemplate.findAndModify(query, update, UserProfile.class);
 	}
 
+	@Override
+	public void resetUserNotificationCount(String id) {
+		Query query = new Query(Criteria.where("id").is(id));
+		Update update = new Update().set("newNotifications", 0);
+		mongoTemplate.findAndModify(query, update, UserProfile.class);
+	}
+	
+	@Override
+	public void markAsReadNotifcation(String id) {
+		
+		Query query = new Query(Criteria.where("id").is(id));
+		Update update = new Update().set("read", true);
+		mongoTemplate.findAndModify(query, update, Notification.class);
+	}
+
 }
