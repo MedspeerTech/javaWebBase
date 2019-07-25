@@ -1,5 +1,6 @@
 package com.piotics.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,6 @@ import com.piotics.common.utils.UtilityManager;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Notification;
-import com.piotics.model.UserProfile;
 import com.piotics.model.UserShort;
 import com.piotics.repository.NotificationMongoRepository;
 import com.piotics.repository.NotificationMongoTemplateImpl;
@@ -33,7 +33,7 @@ public class NotificationService {
 
 	@Autowired
 	TimeManager timeManager;
-	
+
 	@Autowired
 	UserProfileService userProfileService;
 
@@ -49,16 +49,20 @@ public class NotificationService {
 	public void addNotification(UserShort owner, NotificationType notificationType, Invitation item,
 			List<UserShort> usersToNotify) {
 
-		for (UserShort userShort : usersToNotify) {
+		List<Notification> notifications = new ArrayList<>();
+		List<UserShort> notifyTo = new ArrayList<>();
 
-			if (!userShort.getId().equals(owner.getId())) {
+		for (UserShort userToNotify : usersToNotify) {
 
-				Notification notification = new Notification(owner, userShort, notificationType, item.getId());
-//				notification.setTest(item.getEmail());
-				notificationMongoRepository.save(notification);
-				notificationMongoTemplateImpl.updateUserNotificationCount(notification);
+			if (!userToNotify.getId().equals(owner.getId())) {
+
+				Notification notification = new Notification(owner, userToNotify, notificationType, item.getId());
+				notifications.add(notification);
+				notifyTo.add(userToNotify);
 			}
 		}
+		notificationMongoRepository.saveAll(notifications);
+		notificationMongoTemplateImpl.incrementNewNotificationCountByOneForUsersToNotify(notifyTo);
 
 	}
 
@@ -72,7 +76,6 @@ public class NotificationService {
 	}
 
 	public void readNotification(Notification notification) {
-		
 		notificationMongoTemplateImpl.markAsReadNotifcation(notification.getId());
 	}
 
