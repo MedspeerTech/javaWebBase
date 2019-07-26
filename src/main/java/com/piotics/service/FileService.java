@@ -3,9 +3,16 @@ package com.piotics.service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DateFormatSymbols;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -60,7 +67,18 @@ public class FileService {
 	@Value("${piotics.storage.documents.location}")
 	String documentStorageLocation;
 
-	public FileMeta saveFile(ApplicationUser applicationUser, MultipartFile file) {
+	@Value("${piotics.storage.profile.location}")
+	String userProfileImageStorageLocation;
+
+	@Value("#{'${piotics.file.types.suppoted}'.split(',')}")
+	private String[] fileTypesSupported;
+
+	public FileMeta saveFile(ApplicationUser applicationUser, MultipartFile file) throws IOException {
+
+		List<String> supportedFormats = new ArrayList<String>(Arrays.asList(fileTypesSupported));
+
+		if (!supportedFormats.contains("all") && !supportedFormats.contains(file.getContentType()))
+			throw new FileException("unsuppoted file format");
 
 		FileMeta updatedFileMeta = new FileMeta();
 		updatedFileMeta.setOriginalContentType(file.getContentType());
@@ -124,16 +142,47 @@ public class FileService {
 		return contentType.equals(FileContentType.pptDocument) || contentType.equals(FileContentType.pptxDocument);
 	}
 
-	public FileMeta saveFileToDisk(ApplicationUser applicationUser, MultipartFile file, String storageLocation) {
+	public FileMeta saveFileToDisk(ApplicationUser applicationUser, MultipartFile file, String storageLocation)
+			throws IOException {
+
+		int year = getCurrentYear();
+		String month = getCurrentMonth();
+
+		try {
+
+			return saveToDisc(applicationUser, file, storageLocation);
+
+		} catch (NoSuchFileException e) {
+
+			if (!hasFolder(storageLocationPath + year))
+				(new File(storageLocationPath + year)).mkdir();
+
+			if (!hasFolder(storageLocationPath + year + "/" + month)) {
+				(new File(storageLocationPath + year + "/" + month)).mkdir();
+				generateFolderSturctureInsideMonth(storageLocationPath + year + "/" + month);
+			}
+
+			return saveToDisc(applicationUser, file, storageLocation);
+
+		}
+
+	}
+
+	private FileMeta saveToDisc(ApplicationUser applicationUser, MultipartFile file, String storageLocation)
+			throws IOException {
+
+		int year = getCurrentYear();
+		String month = getCurrentMonth();
+
 		try {
 
 			String fileNameWithExt = file.getOriginalFilename();
 
 			String fileName = getRandomUUID();
 			String fileExtention = fileNameWithExt.substring(fileNameWithExt.lastIndexOf("."));
-			String folderRelativePath = storageLocation + fileName + "/";
 
-			String folderFullPath = storageLocationPath + storageLocation + fileName;
+			String folderRelativePath = year + "/" + month + "/" + storageLocation + fileName + "/";
+			String folderFullPath = storageLocationPath + folderRelativePath;
 			String fileFullPath = folderFullPath + "/original" + fileExtention;
 
 			(new File(folderFullPath)).mkdir();
@@ -142,14 +191,37 @@ public class FileService {
 			Path path = Paths.get(fileFullPath);
 
 			Files.write(path, bytes);
-//			return saveFilemeta(applicationUser, fileNameWithExt, file, folderRelativePath);
+//		return saveFilemeta(applicationUser, fileNameWithExt, file, folderRelativePath);
 			return saveFilemeta(applicationUser, "original" + fileExtention, file, folderRelativePath);
+		} catch (NoSuchFileException e) {
 
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new FileException("Unable to save File");
+			throw new NoSuchFileException(e.getMessage());
 		}
+	}
 
+	private void generateFolderSturctureInsideMonth(String path) {
+
+		(new File(path + "/" + imageStorageLocation)).mkdir();
+		(new File(path + "/" + videoStorageLocation)).mkdir();
+		(new File(path + "/" + presentationsStorageLocation)).mkdir();
+		(new File(path + "/" + documentStorageLocation)).mkdir();
+		(new File(path + "/" + userProfileImageStorageLocation)).mkdir();
+	}
+
+	private boolean hasFolder(String path) {
+
+		File file = new File(path);
+
+		if (file != null) {
+			if (file.isDirectory()) {
+
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
 	}
 
 	private String getRandomUUID() {
@@ -223,7 +295,7 @@ public class FileService {
 		Optional<FileMeta> fileMeta = fileMetaMongoRepository.findById(id);
 		return fileMeta;
 	}
-	
+
 	public Path getVideoPath(String fileId, HttpServletRequest httprequest, HttpServletResponse httpresponse) {
 		Optional<FileMeta> fileMeta = this.getFileMeta(fileId);
 		String folderRelativePath = fileMeta.get().getPath();
@@ -338,10 +410,19 @@ public class FileService {
 	}
 
 	public FileMeta getFileById(String id) {
-		
+
 		return fileMetaMongoRepository.findById(id).get();
 	}
 
-	
+	private int getCurrentYear() {
+
+		return Calendar.getInstance().get(Calendar.YEAR);
+	}
+
+	private String getCurrentMonth() {
+
+		String month = Calendar.getInstance().getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
+		return month;
+	}
 
 }

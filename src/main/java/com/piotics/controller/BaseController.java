@@ -20,15 +20,17 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piotics.constants.MessageType;
+import com.piotics.exception.FileException;
 import com.piotics.resources.ExceptionResource;
 
-@ControllerAdvice
+@ControllerAdvice(annotations = RestController.class)
 public class BaseController {
 
 	private static Logger logger = LogManager.getLogger(BaseController.class);
@@ -103,6 +105,18 @@ public class BaseController {
 		if (ex.getMessage().equals("user not invited") || ex.getMessage().equals("no valid request for change mail")
 				|| ex.getMessage().equals("not a valid email") || ex.getMessage().equals("wrong password"))
 			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.FORBIDDEN);
+
+		return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.EXPECTATION_FAILED);
+	}
+	
+	@ExceptionHandler({ FileException.class })
+	public ResponseEntity<ExceptionResource> handleFileException(Exception ex) throws IOException {
+
+		logger.log(Level.INFO, ex.getMessage(), ex);
+		ExceptionResource exceptionResource = new ExceptionResource(ex.getMessage());
+
+		if (ex.getMessage().equals("unsuppoted file format"))
+			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 
 		return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.EXPECTATION_FAILED);
 	}

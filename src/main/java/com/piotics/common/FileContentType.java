@@ -2,9 +2,6 @@ package com.piotics.common;
 
 public interface FileContentType {
 
-
-
-	
 	public final String jpegImage = "image/jpeg";
     public final String pngImage = "image/png";
     public final String gifImage = "image/gif";
