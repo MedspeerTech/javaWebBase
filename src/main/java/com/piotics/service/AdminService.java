@@ -30,20 +30,23 @@ public class AdminService {
 
 		String phone = invitation.getPhone();
 		String email = invitation.getEmail();
+		String notificationTitle = "";
 
 		if (email != null && !email.isEmpty()) {
 
 			sendInvite(email, invitation);
+			notificationTitle = email;
 
 		} else if (phone != null && !phone.isEmpty()) {
 
 			sendInvite(phone, invitation);
+			notificationTitle = phone;
 
 		} else {
 			throw new UserException("username not provided");
 		}
 
-		notificationService.notifyAdminsOnUserInvite(applicationUser, invitation);
+		notificationService.notifyAdminsOnUserInvite(applicationUser, invitation, notificationTitle);
 		return invitation;
 	}
 

@@ -40,14 +40,14 @@ public class NotificationService {
 	@Autowired
 	NotificationMongoTemplateImpl notificationMongoTemplateImpl;
 
-	public void notifyAdminsOnUserInvite(ApplicationUser applicationUser, Invitation item) {
+	public void notifyAdminsOnUserInvite(ApplicationUser applicationUser, Invitation item, String title) {
 		UserShort owner = userService.getUserShort(applicationUser.getId());
 		List<UserShort> notifyTo = userService.getUserShortOfAdmins();
-		addNotification(owner, NotificationType.INVITATION, item, notifyTo);
+		addNotification(owner, NotificationType.INVITATION, item, notifyTo, title);
 	}
 
 	public void addNotification(UserShort owner, NotificationType notificationType, Invitation item,
-			List<UserShort> usersToNotify) {
+			List<UserShort> usersToNotify, String title) {
 
 		List<Notification> notifications = new ArrayList<>();
 		List<UserShort> notifyTo = new ArrayList<>();
@@ -56,7 +56,8 @@ public class NotificationService {
 
 			if (!userToNotify.getId().equals(owner.getId())) {
 
-				Notification notification = new Notification(owner, userToNotify, notificationType, item.getId());
+				Notification notification = new Notification(owner, userToNotify, notificationType, item.getId(),
+						title);
 				notifications.add(notification);
 				notifyTo.add(userToNotify);
 			}

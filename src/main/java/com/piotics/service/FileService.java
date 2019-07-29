@@ -163,7 +163,6 @@ public class FileService {
 			}
 
 			return saveToDisc(applicationUser, file, storageLocation);
-
 		}
 
 	}

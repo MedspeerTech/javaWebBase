@@ -17,7 +17,8 @@ public class Notification {
 
 	@Id
 	@NotNull
-	private String id;
+	private String id;	
+	private String title;
 	
 	@DBRef
 	private UserShort owner;
@@ -30,13 +31,14 @@ public class Notification {
 	private Date createdOn;
 	private boolean read;
 
-	public Notification(UserShort owner, UserShort userToNotify, NotificationType type, String itemId) {
+	public Notification(UserShort owner, UserShort userToNotify, NotificationType type, String itemId,String title) {
 
 		this.owner = owner;
 		this.userToNotify = userToNotify;
 		this.type = type;
 		this.itemId = itemId;
 		this.createdOn = Date.from(TimeManager.getCurrentTimestamp().toInstant());
+		this.title = title;
 	}
 
 	public Notification() {
@@ -48,6 +50,14 @@ public class Notification {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+	
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public UserShort getOwner() {
