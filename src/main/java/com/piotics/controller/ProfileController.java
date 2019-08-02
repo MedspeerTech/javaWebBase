@@ -30,14 +30,14 @@ public class ProfileController extends BaseController {
 	@RequestMapping(value = "/save", method = RequestMethod.POST)
 	@PreAuthorize("@AccessFilter.hasAccess(authentication,#userProfile.getId())")
 	public ResponseEntity<UserProfile> saveProfile(@Valid @RequestBody UserProfile userProfile) {
-		
+
 		userProfile = userProfileService.saveProfile(userProfile);
 		return new ResponseEntity<UserProfile>(userProfile, HttpStatus.ACCEPTED);
 	}
 
 	@RequestMapping(value = "/get/{id}", method = RequestMethod.GET)
 	public ResponseEntity<UserProfile> getProfile(@PathVariable String id) {
-		
+
 		UserProfile userProfile = userProfileService.getProfile(id);
 		return new ResponseEntity<UserProfile>(userProfile, HttpStatus.OK);
 	}
