@@ -62,7 +62,7 @@ public class NotificationMongoTemplateImpl implements NotificationMongoTemplate 
 			query.addCriteria(criteria);
 
 			Update update = new Update();
-			update.set(NotificationDocument.COUNT, 1);
+			update.inc(NotificationDocument.COUNT, 1);
 
 			bulkOps.updateOne(query, update);
 
