@@ -12,7 +12,7 @@ import com.piotics.service.PostService;
 
 @Component("AccessFilter")
 public class AccessFilter {
-	
+
 	@Autowired
 	PostService postService;
 
@@ -45,11 +45,23 @@ public class AccessFilter {
 
 		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
 		Post post = postService.getPost(postId);
-		
-		if (!applicationUser.getId() .equals (post.getCreator().getId())) return false;
-		
-		else return true;
-		
+
+		if (!applicationUser.getId().equals(post.getCreator().getId()))
+			return false;
+
+		else
+			return true;
+	}
+
+	public boolean isAdmin(Authentication authentication) {
+
+		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
+
+		if (applicationUser.getRole().equals(UserRoles.ROLE_ADMIN)) {
+			return true;
+		} else {
+			return false;
+		}
 
 	}
 

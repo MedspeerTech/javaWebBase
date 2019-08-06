@@ -1,6 +1,7 @@
 package com.piotics.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "invitation")
@@ -10,7 +11,8 @@ public class Invitation {
 	private String id;
 	private String email;
 	private String phone;
-	private String invitedBY;
+	@DBRef
+	private UserShort invitedBY;
 	private Token token;
 	
 	public String getId() {
@@ -31,10 +33,10 @@ public class Invitation {
 	public void setPhone(String phone) {
 		this.phone = phone;
 	}
-	public String getInvitedBY() {
+	public UserShort getInvitedBY() {
 		return invitedBY;
 	}
-	public void setInvitedBY(String invitedBY) {
+	public void setInvitedBY(UserShort invitedBY) {
 		this.invitedBY = invitedBY;
 	}
 	public Token getToken() {
