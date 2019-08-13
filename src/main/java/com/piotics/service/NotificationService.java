@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.piotics.common.NotificationType;
 import com.piotics.common.TimeManager;
 import com.piotics.common.utils.UtilityManager;
+import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Notification;
@@ -40,13 +41,25 @@ public class NotificationService {
 	@Autowired
 	NotificationMongoTemplateImpl notificationMongoTemplateImpl;
 
+	public NotificationService(NotificationMongoRepository notificationMongoRepository, UtilityManager utilityManager,
+			UserService userService, TimeManager timeManager, UserProfileService userProfileService,
+			NotificationMongoTemplateImpl notificationMongoTemplateImpl) {
+
+		this.notificationMongoRepository =notificationMongoRepository;
+		this.utilityManager = utilityManager;
+		this.userService = userService;
+		this.timeManager = timeManager;
+		this.userProfileService = userProfileService;
+		this.notificationMongoTemplateImpl = notificationMongoTemplateImpl;
+	}
+
 	public void notifyAdminsOnUserInvite(ApplicationUser applicationUser, Invitation item, String title) {
 		UserShort owner = userService.getUserShort(applicationUser.getId());
 		List<UserShort> notifyTo = userService.getUserShortOfAdmins();
-		addNotification(owner, NotificationType.INVITATION, item, notifyTo, title);
+		addNotification(owner, NotificationType.INVITATION, item.getId(), notifyTo, title);
 	}
 
-	public void addNotification(UserShort owner, NotificationType notificationType, Invitation item,
+	public void addNotification(UserShort owner, NotificationType notificationType, String itemId,
 			List<UserShort> usersToNotify, String title) {
 
 		List<Notification> notifications = new ArrayList<>();
@@ -56,7 +69,7 @@ public class NotificationService {
 
 			if (!userToNotify.getId().equals(owner.getId())) {
 
-				Notification notification = new Notification(owner, userToNotify, notificationType, item.getId(),
+				Notification notification = new Notification(owner, userToNotify, notificationType, itemId,
 						title);
 				notifications.add(notification);
 				notifyTo.add(userToNotify);
@@ -64,7 +77,6 @@ public class NotificationService {
 		}
 		notificationMongoRepository.saveAll(notifications);
 		notificationMongoTemplateImpl.incrementNewNotificationCountByOneForUsersToNotify(notifyTo);
-
 	}
 
 	public NotificationResource getNotificationList(ApplicationUser applicationUser, int pageNo) {

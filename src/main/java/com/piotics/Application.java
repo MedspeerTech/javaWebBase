@@ -12,7 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @SpringBootApplication
 @EnableAutoConfiguration
 @EnableAsync
-@ComponentScan(basePackages = {"com.piotics"})
+@ComponentScan(basePackages = { "com.piotics" })
 public class Application extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
@@ -20,10 +20,10 @@ public class Application extends SpringBootServletInitializer {
 		SpringApplication.run(Application.class, args);
 
 	}
-	
+
 	@Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	public BCryptPasswordEncoder bCryptPasswordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 
 }

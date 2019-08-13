@@ -2,17 +2,15 @@ package com.piotics.service;
 
 import java.util.Optional;
 
-import com.piotics.common.utils.UtilityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.piotics.repository.ApplicationUserMongoRepository;
-import com.piotics.repository.UserMongoRepository;
-import com.piotics.common.MailManager;
+import com.piotics.common.utils.UtilityManager;
 import com.piotics.model.ApplicationUser;
+import com.piotics.repository.UserMongoRepository;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -20,10 +18,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Autowired
 	UtilityManager utilityManager;
 
-	private UserMongoRepository applicationUserMongoRepository;
+	private UserMongoRepository userMongoRepository;
 
 	public UserDetailsServiceImpl(UserMongoRepository applicationUserRepository) {
-		this.applicationUserMongoRepository = applicationUserRepository;
+		this.userMongoRepository = applicationUserRepository;
 	}
 
 	@Override
@@ -32,12 +30,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		ApplicationUser applicationUser = new ApplicationUser();
 		
 		if (utilityManager.isEmail(username)) {
-			applicationUser = applicationUserMongoRepository.findByEmail(username);
+			applicationUser = userMongoRepository.findByEmail(username);
 			if (applicationUser == null) {
 				throw new UsernameNotFoundException(username);
 			}
 		}else {
-			applicationUser = applicationUserMongoRepository.findByPhone(username);
+			applicationUser = userMongoRepository.findByPhone(username);
 			if (applicationUser == null) {
 				throw new UsernameNotFoundException(username);
 			}
@@ -48,6 +46,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	public Optional<ApplicationUser> findById(String id) {
 		// TODO Auto-generated method stub
-		return applicationUserMongoRepository.findById(id);
+		return userMongoRepository.findById(id);
 	}
 }

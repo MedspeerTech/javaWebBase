@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -24,11 +25,12 @@ import com.piotics.model.SignUpUser;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
 import com.piotics.model.UserShort;
-import com.piotics.repository.ApplicationUserMongoRepository;
 import com.piotics.repository.UserMongoRepository;
 import com.piotics.repository.UserShortMongoRepository;
 
+
 @Service
+@Lazy
 public class UserService {
 
 	@Autowired
@@ -40,8 +42,8 @@ public class UserService {
 	@Autowired
 	BCryptPasswordUtils bCryptPasswordUtils;
 
-	@Autowired
-	ApplicationUserMongoRepository applicationUserMongoRepository;
+//	@Autowired
+//	ApplicationUserMongoRepository applicationUserMongoRepository;
 
 	@Autowired
 	HttpServletRequestUtils httpServletRequestUtils;
@@ -66,9 +68,26 @@ public class UserService {
 
 	@Autowired
 	NotificationService notificationService;
+	
+	
+	
 
 	@Value("${invite.required}")
 	public boolean inviteRequired;
+
+	public UserService(UserMongoRepository userMongoRepository, UtilityManager utilityManager,
+			BCryptPasswordUtils bCryptPasswordUtils, InvitationService invitationService, TokenService tokenService,
+			UserProfileService userProfileService, MailService mailService, UserShortMongoRepository userShortMongoRepository) {
+
+		this.userMongoRepository = userMongoRepository;
+		this.utilityManager = utilityManager;
+		this.bCryptPasswordUtils = bCryptPasswordUtils;
+		this.invitationService = invitationService;
+		this.tokenService = tokenService;
+		this.userProfileService = userProfileService;
+		this.mailService = mailService;
+		this.userShortMongoRepository = userShortMongoRepository;
+	}
 
 	public void signUp(SignUpUser signUpUser) throws Exception {
 
@@ -87,8 +106,7 @@ public class UserService {
 
 		String encodedPassword = bCryptPasswordUtils.encodePassword(signUpUser.getPassword());
 
-		ApplicationUser newUser = new ApplicationUser(signUpUser.getUsername(), encodedPassword, UserRoles.ROLE_USER,
-				true);
+		ApplicationUser newUser = new ApplicationUser(signUpUser.getUsername(), encodedPassword, UserRoles.ROLE_USER,true);
 		Token token = new Token();
 
 		if (invitationService.isInvited(signUpUser.getUsername()))
@@ -112,8 +130,8 @@ public class UserService {
 	}
 
 	public boolean isExistingUser(String userName) {
-		return !(applicationUserMongoRepository.findByEmail(userName) == null
-				&& applicationUserMongoRepository.findByPhone(userName) == null);
+		return !(userMongoRepository.findByEmail(userName) == null
+				&& userMongoRepository.findByPhone(userName) == null);
 
 	}
 
@@ -166,7 +184,7 @@ public class UserService {
 				TokenType.PASSWORDRESET);
 
 		if (dbToken == null)
-			throw new TokenException("InvalidToken");
+			throw new TokenException("no token found for password reset");
 
 		tokenService.isTokenValid(dbToken);
 		if (!passwordReset.getToken().equals(dbToken.getToken()))

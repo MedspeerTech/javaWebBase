@@ -7,19 +7,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
-import com.piotics.common.TokenType;
 import com.piotics.config.JwtTokenProvider;
-import com.piotics.constants.*;
+import com.piotics.constants.UserRoles;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationSocialUser;
 import com.piotics.model.ApplicationUser;
-import com.piotics.model.Invitation;
-import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
 import com.piotics.repository.ApplicationSocialUserMongoRepository;
-import com.piotics.repository.ApplicationUserMongoRepository;
 import com.piotics.repository.InvitationMongoRepository;
 import com.piotics.repository.TokenMongoRepository;
+import com.piotics.repository.UserMongoRepository;
 import com.piotics.repository.UserProfileMongoRepository;
 import com.piotics.resources.SocialUser;
 
@@ -39,7 +36,7 @@ public class SocialAuthService {
 	TokenService tokenService;
 
 	@Autowired
-	ApplicationUserMongoRepository applicationUserMongoRepository;
+	UserMongoRepository userMongoRepository;
 
 	@Autowired
 	InvitationMongoRepository invitationMongoRepository;
@@ -80,19 +77,19 @@ public class SocialAuthService {
 
 		if (applicationSocialUser.isPresent()) {
 			this.applicationSocialUser = applicationSocialUser.get();
-			Optional<ApplicationUser> applicationUser = applicationUserMongoRepository
+			Optional<ApplicationUser> applicationUser = userMongoRepository
 					.findById(this.applicationSocialUser.getId());
 			this.applicationUser = applicationUser.get();
 
 		} else {
 
-			this.applicationUser = applicationUserMongoRepository.findByUsername(socialUser.getEmail());
+			this.applicationUser = userMongoRepository.findByUsername(socialUser.getEmail());
 			if (this.applicationUser == null) {
 				createApplicationUser(socialUser, UserRoles.ROLE_USER);
 //			createUserInfo(socialUser);
 			} else if (!(this.applicationUser.isEnabled())) {
 				this.applicationUser.setEnabled(true);
-				applicationUserMongoRepository.save(this.applicationUser);
+				userMongoRepository.save(this.applicationUser);
 			}
 			ApplicationSocialUser newApplicationSocialUser = new ApplicationSocialUser(socialUser);
 			newApplicationSocialUser.setId(this.applicationUser.getId());
@@ -126,7 +123,7 @@ public class SocialAuthService {
 		ApplicationUser applicationUser = new ApplicationUser(socialUser, role);
 		applicationUser.setEnabled(true);
 		applicationUser.setRole(UserRoles.ROLE_USER);
-		this.applicationUser = applicationUserMongoRepository.save(applicationUser);
+		this.applicationUser = userMongoRepository.save(applicationUser);
 	}
 
 	public boolean isUserSignedUp(SocialUser socialUser) {

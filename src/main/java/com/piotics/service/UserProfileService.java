@@ -2,6 +2,7 @@ package com.piotics.service;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.piotics.common.TokenType;
@@ -18,7 +19,7 @@ import com.piotics.repository.UserProfileMongoRepository;
 
 @Service
 public class UserProfileService {
-
+	
 	@Autowired
 	FileService fileService;
 
@@ -26,6 +27,7 @@ public class UserProfileService {
 	UserProfileMongoRepository userProfileMongoRepository;
 
 	@Autowired
+	@Lazy
 	UserService userService;
 
 	@Autowired
@@ -42,6 +44,25 @@ public class UserProfileService {
 
 	@Autowired
 	UtilityManager utilityManager;
+	
+	
+
+	public UserProfileService(FileService fileService,
+			UserProfileMongoRepository userProfileMongoRepository, UserService userService,
+			TokenService tokenService, MailService mailService, UserMongoRepository userMongoRepository,
+			BCryptPasswordUtils bCryptPasswordUtils, UtilityManager utilityManager) {
+		
+		this.fileService = fileService;
+		this.userProfileMongoRepository = userProfileMongoRepository;
+		this.userService = userService;
+		this.tokenService = tokenService;
+		this.mailService = mailService;
+		this.userMongoRepository = userMongoRepository;
+		this.bCryptPasswordUtils = bCryptPasswordUtils;
+		this.utilityManager = utilityManager;
+	}
+
+	public UserProfileService() {}
 
 	public UserProfile save(UserProfile userProfile) {
 
@@ -133,6 +154,5 @@ public class UserProfileService {
 		
 		userService.save(applicationUser);
 	}
-
 
 }

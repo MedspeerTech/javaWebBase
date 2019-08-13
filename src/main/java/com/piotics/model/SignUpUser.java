@@ -17,6 +17,8 @@ public class SignUpUser implements Validatable {
 		this.password = password;
 	}
 
+	public SignUpUser() {}
+
 	@Override
 	public boolean isValid() {
 
