@@ -390,12 +390,13 @@ public class FileService {
 			FileMeta fileMeta = ff.get();
 			String relativePath = fileMeta.getPath();
 
-			String fileExt = ".pdf";
-			if (fileMeta.getOriginalContentType().equals("application/pdf")) {
-				fileExt = ".pdf";
-			}
-
-			String fileName = "original" + fileExt;
+//			String fileExt = ".pdf";
+//			if (fileMeta.getOriginalContentType().equals("application/pdf")) {
+//				fileExt = ".pdf";
+//			}
+//
+//			String fileName = "original" + fileExt;
+			String fileName = fileMeta.getName();
 			String path = storageLocationPath + relativePath + fileName;
 			File file = new File(path);
 			try {
