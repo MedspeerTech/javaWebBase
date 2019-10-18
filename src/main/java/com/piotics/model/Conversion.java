@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.piotics.constants.FileType;
 
-@Document(collection="conversion")
+@Document(collection="#{@tenantManager.getTenantId()}"+"conversion")
 public class Conversion {
 
 	@Id

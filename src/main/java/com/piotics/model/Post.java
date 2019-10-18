@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import com.piotics.constants.FileType;
 
-@Document(value = "post")
+@Document(value = "#{@tenantManager.getTenantId()}"+"post")
 public class Post extends Social implements ActivityMarker {
 
 	@Id

@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.piotics.common.TokenType;
 
-@Document(value = "token")
+@Document(value = "#{@tenantManager.getTenantId()}"+"token")
 public class Token {
 
 	@Id

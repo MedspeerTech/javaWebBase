@@ -9,7 +9,7 @@ import com.piotics.common.TimeManager;
 import com.piotics.constants.FileType;
 
 
-@Document(collection = "filemeta")
+@Document(collection = "#{@tenantManager.getTenantId()}"+"filemeta")
 public class FileMeta {
 
 	@Id

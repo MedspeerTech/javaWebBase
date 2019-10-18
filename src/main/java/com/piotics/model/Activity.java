@@ -14,9 +14,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.piotics.common.utils.CustomDeserializer;
 import com.piotics.constants.Targets;
 
-@Document(value = "activity")
+@Document(value = "#{@tenantManager.getTenantId()}"+"activity")
 //@JsonDeserialize(using = ActivityDeserializer.class)
 @JsonDeserialize(using = CustomDeserializer.class)
+
 public class Activity implements Serializable{
 
 	@Id
