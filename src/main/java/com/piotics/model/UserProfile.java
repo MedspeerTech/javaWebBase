@@ -1,5 +1,7 @@
 package com.piotics.model;
 
+import java.util.List;
+
 import javax.validation.constraints.NotEmpty;
 
 import org.springframework.data.annotation.Id;
@@ -7,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.google.firebase.database.annotations.NotNull;
 import com.piotics.constants.Gender;
+import com.piotics.constants.UserRoles;
 
 @Document(collection = "user")
 public class UserProfile {
@@ -26,6 +29,8 @@ public class UserProfile {
 	private String designation;
 	private String location;
 	private int newNotifications;
+	private UserRoles userRole;
+	private List<TenantRelation> tenantRelations;
 
 	public UserProfile() {}
 
@@ -119,6 +124,22 @@ public class UserProfile {
 
 	public void setNewNotifications(int newNotifications) {
 		this.newNotifications = newNotifications;
+	}
+
+	public UserRoles getUserRole() {
+		return userRole;
+	}
+
+	public void setUserRole(UserRoles userRole) {
+		this.userRole = userRole;
+	}
+
+	public List<TenantRelation> getTenantRelations() {
+		return tenantRelations;
+	}
+
+	public void setTenantRelations(List<TenantRelation> tenantRelations) {
+		this.tenantRelations = tenantRelations;
 	}
 
 }

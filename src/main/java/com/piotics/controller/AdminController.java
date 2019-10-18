@@ -41,7 +41,7 @@ public class AdminController {
 	public ResponseEntity<StringResource> invite(Principal principal, @RequestBody StringResource invitationLi ) throws Exception {
 
 		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
-		StringResource failedList = adminService.invite(applicationUser, invitationLi);
+		StringResource failedList = adminService.senInvite(applicationUser, invitationLi);
 
 		return new ResponseEntity<StringResource>(failedList, HttpStatus.OK);
 	}

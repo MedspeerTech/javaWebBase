@@ -14,6 +14,7 @@ import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Component;
 
 import com.piotics.model.EMail;
+import com.piotics.model.Tenant;
 import com.piotics.model.Token;
 
 @Component
@@ -60,7 +61,13 @@ public class MailManager {
 
 	@Value("${mail.reset.phone.verfication.message}")
 	String resetPhoneVerificationMessage;
-
+	
+	@Value("${mail.tenant.creation.owner.notification.message}")
+	String tenantCreationNotificationMessage;
+	
+	@Value("${mail.tenant.creation.owner.notification.subject}")
+	String tenantCreationNotificationSubject;
+	
 	@Autowired
 	JavaMailSender mailSender;
 
@@ -137,5 +144,14 @@ public class MailManager {
 		email.setMessage(resetPhoneVerificationMessage + " " + verificationUrl);
 		return email;
 
+	}
+
+	public EMail composeTenantCreationNotificationEmail(Tenant tenant) {
+		
+		EMail email = new EMail();
+		email.setToAddress(tenant.getOwnerEmail());
+		email.setSubject(tenantCreationNotificationSubject);
+		email.setMessage(tenant.getName() +" "+tenantCreationNotificationMessage);
+		return email;
 	}
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.piotics.common.MailManager;
 import com.piotics.common.TokenType;
 import com.piotics.model.EMail;
+import com.piotics.model.Tenant;
 import com.piotics.model.Token;
 
 @Service
@@ -33,6 +34,11 @@ public class MailService {
 			email = mailManager.composeMailResetVerificationEmail(token);
 		}
 		mailManager.sendEmail(email);
+	}
+
+	public void notifyOwnerOnTenantCreation(Tenant tenant) {
+		EMail eMail = mailManager.composeTenantCreationNotificationEmail(tenant);
+		mailManager.sendEmail(eMail);
 	}
 	
 }

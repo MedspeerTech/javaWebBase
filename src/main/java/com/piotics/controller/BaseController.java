@@ -100,6 +100,8 @@ public class BaseController {
 
 		if (ex.getMessage().equals("wrong password"))
 			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.BAD_REQUEST);
+		if(ex.getMessage().equals("Access is denied"))
+			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.UNAUTHORIZED);
 		if (ex.getMessage().equals("no change found"))
 			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.NOT_MODIFIED);
 		if (ex.getMessage().equals("user not invited") || ex.getMessage().equals("no valid request for change mail")

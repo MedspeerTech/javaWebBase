@@ -19,7 +19,7 @@ import com.piotics.repository.UserProfileMongoRepository;
 
 @Service
 public class UserProfileService {
-	
+
 	@Autowired
 	FileService fileService;
 
@@ -44,14 +44,12 @@ public class UserProfileService {
 
 	@Autowired
 	UtilityManager utilityManager;
-	
-	
 
-	public UserProfileService(FileService fileService,
-			UserProfileMongoRepository userProfileMongoRepository, UserService userService,
-			TokenService tokenService, MailService mailService, UserMongoRepository userMongoRepository,
-			BCryptPasswordUtils bCryptPasswordUtils, UtilityManager utilityManager) {
-		
+	public UserProfileService(FileService fileService, UserProfileMongoRepository userProfileMongoRepository,
+			UserService userService, TokenService tokenService, MailService mailService,
+			UserMongoRepository userMongoRepository, BCryptPasswordUtils bCryptPasswordUtils,
+			UtilityManager utilityManager) {
+
 		this.fileService = fileService;
 		this.userProfileMongoRepository = userProfileMongoRepository;
 		this.userService = userService;
@@ -62,7 +60,8 @@ public class UserProfileService {
 		this.utilityManager = utilityManager;
 	}
 
-	public UserProfileService() {}
+	public UserProfileService() {
+	}
 
 	public UserProfile save(UserProfile userProfile) {
 
@@ -141,18 +140,22 @@ public class UserProfileService {
 		tokenService.deleteToken(dbToken);
 	}
 
-	
-	public void changePassword(ApplicationUser applicationUser, PasswordResetResource passwordresetResource) throws Exception {
+	public void changePassword(ApplicationUser applicationUser, PasswordResetResource passwordresetResource)
+			throws Exception {
 
-		if(!bCryptPasswordUtils.isMatching(passwordresetResource.getPassword(), applicationUser.getPassword()))
+		if (!bCryptPasswordUtils.isMatching(passwordresetResource.getPassword(), applicationUser.getPassword()))
 			throw new Exception("wrong password");
-		
-		if(bCryptPasswordUtils.isMatching(passwordresetResource.getNewPassword(), applicationUser.getPassword()))
+
+		if (bCryptPasswordUtils.isMatching(passwordresetResource.getNewPassword(), applicationUser.getPassword()))
 			throw new Exception("no change found");
-		
+
 		applicationUser.setPassword(bCryptPasswordUtils.encodePassword(passwordresetResource.getNewPassword()));
-		
+
 		userService.save(applicationUser);
+	}
+
+	public UserProfile getProfileByMail(String email) {
+		return userProfileMongoRepository.findByEmail(email);
 	}
 
 }

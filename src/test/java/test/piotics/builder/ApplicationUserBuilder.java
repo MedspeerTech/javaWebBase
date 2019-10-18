@@ -4,7 +4,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 
 import com.piotics.constants.UserRoles;
 import com.piotics.model.ApplicationUser;
-import com.piotics.model.Company;
+import com.piotics.model.Tenant;
 
 public class ApplicationUserBuilder implements Builder<ApplicationUser> {
 
@@ -14,7 +14,7 @@ public class ApplicationUserBuilder implements Builder<ApplicationUser> {
 	private String email = "dijofrancis01@gmail.com";
 	private String phone = "8525016985";
 	private String countryCode = "+91";
-	private Company company = new Company();
+	private Tenant company = new Tenant();
 	private UserRoles role = UserRoles.ROLE_USER;
 	private boolean enabled = true;
 	private int attempts = 0;
@@ -45,7 +45,7 @@ public class ApplicationUserBuilder implements Builder<ApplicationUser> {
 		return applicationUser;
 	}
 
-	public ApplicationUserBuilder withCompany(Company company) {
+	public ApplicationUserBuilder withCompany(Tenant company) {
 
 		this.company = company;
 		return this;

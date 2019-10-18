@@ -6,4 +6,6 @@ import com.piotics.model.UserProfile;
 
 public interface UserProfileMongoRepository extends MongoRepository<UserProfile, String> {
 
+	UserProfile findByEmail(String email);
+
 }

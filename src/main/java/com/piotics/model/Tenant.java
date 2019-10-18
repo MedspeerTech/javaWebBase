@@ -3,8 +3,8 @@ package com.piotics.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "company")
-public class Company {
+@Document(collection = "tenant")
+public class Tenant {
 
 	@Id
 	private String id;
@@ -12,6 +12,9 @@ public class Company {
 	private String email;
 	private String phone;
 	private String address;
+	private String fileId;
+	private String ownerId;
+	private String ownerEmail;
 
 	public String getId() {
 		return id;
@@ -52,5 +55,31 @@ public class Company {
 	public void setAddress(String address) {
 		this.address = address;
 	}
+
+	public String getFileId() {
+		return fileId;
+	}
+
+	public void setFileId(String fileId) {
+		this.fileId = fileId;
+	}
+
+	public String getOwnerId() {
+		return ownerId;
+	}
+
+	public void setOwnerId(String ownerId) {
+		this.ownerId = ownerId;
+	}
+
+	public String getOwnerEmail() {
+		return ownerEmail;
+	}
+
+	public void setOwnerEmail(String ownerEmail) {
+		this.ownerEmail = ownerEmail;
+	}
+	
+	
 
 }

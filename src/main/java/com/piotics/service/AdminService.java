@@ -59,9 +59,13 @@ public class AdminService {
 //		return invitation;
 //	}
 
-	public StringResource invite(ApplicationUser applicationUser, StringResource invitationLi) throws Exception {
+	public StringResource senInvite(ApplicationUser applicationUser, StringResource invitationLi) throws Exception {
 
 		List<Invitation> invitations = populateStringsToInvitation(applicationUser, invitationLi);
+		return invite(applicationUser, invitations);
+	}
+
+	public StringResource invite(ApplicationUser applicationUser, List<Invitation> invitations) throws Exception {
 
 		List<String> failedList = new ArrayList<>();
 		String notificationTitle = "";

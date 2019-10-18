@@ -31,7 +31,7 @@ public class ApplicationUser implements UserDetails {
 	private String phone;
 	private String countryCode;
 	@DBRef
-	private Company company;
+	private Tenant company;
 	private UserRoles role;
 	private boolean enabled = false;
 	private int attempts;
@@ -91,11 +91,11 @@ public class ApplicationUser implements UserDetails {
 		this.countryCode = countryCode;
 	}
 
-	public Company getCompany() {
+	public Tenant getCompany() {
 		return company;
 	}
 
-	public void setCompany(Company company) {
+	public void setCompany(Tenant company) {
 		this.company = company;
 	}
 
