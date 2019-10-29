@@ -12,19 +12,10 @@ public class UtilityManager {
 	public boolean isEmail(String username) {
 		Pattern pattern = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
 		Matcher mat = pattern.matcher(username);
-
-		if (mat.matches()) {
-
-			return true;
-		} else {
-
-			return false;
-		}
+		return (mat.matches());
 	}
 
 	public String generateObjectId() {
-
-		String objectId = new ObjectId().toString();
-		return objectId;
+		return new ObjectId().toString();
 	}
 }

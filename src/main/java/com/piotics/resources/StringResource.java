@@ -12,10 +12,7 @@ public class StringResource implements Serializable {
 		this.strings = strings;
 	}
 
-	public StringResource() {
-
-		
-	}
+	public StringResource() {}
 
 	public List<String> getStrings() {
 		return strings;

@@ -17,7 +17,7 @@ import javax.validation.Payload;
 
 public @interface ObjectValidation {
 
-	String message() ;//default "sdfsfsdf";
+	String message() ;
 
 	Class<?>[] groups() default {};
 

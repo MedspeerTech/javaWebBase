@@ -3,9 +3,9 @@ package com.piotics.constants;
 public enum FileType {
 
 	TEXT,
-	Document,
+	DOCUMENT,
 	PDF,
-	Image,
-	Presentation,
-	Video
+	IMAGE,
+	PRESENTATION,
+	VIDEO
 }

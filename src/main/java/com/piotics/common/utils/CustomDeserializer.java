@@ -22,7 +22,7 @@ public class CustomDeserializer extends JsonDeserializer<ActivityMarker> {
 
 	@Override
 	public ActivityMarker deserialize(JsonParser jp, DeserializationContext ctxt)
-			throws IOException, JsonProcessingException {
+			throws IOException{
 		ObjectMapper mapper = (ObjectMapper) jp.getCodec();
 		ObjectNode root = mapper.readTree(jp);
 		

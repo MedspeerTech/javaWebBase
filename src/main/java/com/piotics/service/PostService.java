@@ -1,6 +1,7 @@
 package com.piotics.service;
 
 import java.util.Date;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,11 @@ public class PostService {
 
 	public void deletePost(String id) {
 
-		Post post = postMongoRepository.findById(id).get();
+		Optional<Post> postOptional = postMongoRepository.findById(id);
+		Post post = new Post();
+		if (postOptional.isPresent()) {
+			post = postOptional.get();
+		}
 		postMongoRepository.delete(post);
 
 		activityService.deletePostActivities(post);
@@ -52,11 +57,16 @@ public class PostService {
 
 	public Post editPost(Post post) {
 
-//		activityService.updatePostActivities(post);
 		return postMongoTemplateImpl.updatePost(post);
 	}
 
 	public Post getPost(String postId) {
-		return postMongoRepository.findById(postId).get();
+
+		Optional<Post> postOptional = postMongoRepository.findById(postId);
+		Post post = new Post();
+		if (postOptional.isPresent()) {
+			post = postOptional.get();
+		}
+		return post;
 	}
 }

@@ -6,7 +6,7 @@ import com.piotics.model.Activity;
 
 public class ActivityResource {
 
-	public List<Activity> activities;
+	private List<Activity> activities;
 
 	public List<Activity> getActivities() {
 		return activities;

@@ -3,7 +3,6 @@ package com.piotics.custom.validator;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.piotics.common.utils.UtilityManager;
@@ -14,6 +13,7 @@ public class ObjectValidator implements ConstraintValidator<ObjectValidation, Si
 	@Autowired
 	UtilityManager utilityManager;
 
+	@Override
 	public void initialize(ObjectValidation constraintAnnotation) {
 
 //		this.message = constraintAnnotation.message();
@@ -24,13 +24,7 @@ public class ObjectValidator implements ConstraintValidator<ObjectValidation, Si
 	@Override
 	public boolean isValid(SignUpUser object, ConstraintValidatorContext context) {
 
-		if(!object.isValid()) {
-
-			return false;
-		}else {
-			return true;
-		}
-
+		return(object.isValid());
 	}
 
 }

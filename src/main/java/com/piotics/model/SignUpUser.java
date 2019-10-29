@@ -17,22 +17,17 @@ public class SignUpUser implements Validatable {
 		this.password = password;
 	}
 
-	public SignUpUser() {}
+	public SignUpUser() {
+	}
 
 	@Override
 	public boolean isValid() {
 
 		UtilityManager utilityManager = new UtilityManager();
-		
+
 		if (username == null)
 			return false;
-		if (utilityManager.isEmail(username))
-			if (password != null)
-				return true;
-			else
-				return false;
-		else
-			return true;
+		return (utilityManager.isEmail(username) && password != null);
 	}
 
 	public String getUsername() {

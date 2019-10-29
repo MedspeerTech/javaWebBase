@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -23,12 +24,12 @@ public class TenantController {
 	@Autowired
 	TenantService tenantService;
 
-	@RequestMapping(value = "/create", method = RequestMethod.POST)
+	@PostMapping(value = "/create")
 	@PreAuthorize("@AccessFilter.hasTenantCreationAccess(authentication)")
 	public ResponseEntity<Tenant> create(Principal principal, @RequestBody Tenant tenant) throws Exception {
 		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
 		tenant = tenantService.createTenant(applicationUser,tenant);
-		return new ResponseEntity<Tenant>(tenant, HttpStatus.OK);
+		return new ResponseEntity<>(tenant, HttpStatus.OK);
 	}
 
 }

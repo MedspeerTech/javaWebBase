@@ -33,7 +33,7 @@ public class PresentationService {
 		try {
 			while (!isConversionInProgress) {
 //			List<Conversion> ppts = conversionJpaRepository.findByFileType(FileType.Presentation);
-				List<Conversion> ppts = conversionMongoRepository.findByFileTypeAndLogNull(FileType.Presentation);
+				List<Conversion> ppts = conversionMongoRepository.findByFileTypeAndLogNull(FileType.PRESENTATION);
 
 				if (!ppts.isEmpty()) {
 

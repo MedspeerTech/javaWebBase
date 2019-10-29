@@ -1,6 +1,7 @@
 package com.piotics.config;
 
-import com.mongodb.*;
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -14,7 +15,12 @@ import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 
-import java.util.Arrays;
+import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
+import com.mongodb.WriteConcern;
 
 @Configuration
 public class SpringMongoConfig extends AbstractMongoConfiguration {
@@ -44,7 +50,7 @@ public class SpringMongoConfig extends AbstractMongoConfiguration {
 	
 	
 	
-	public Mongo mongo() throws Exception {
+	public Mongo mongo(){
 		MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
 		MongoClientOptions options = builder.connectionsPerHost(100).build();
 
@@ -54,6 +60,7 @@ public class SpringMongoConfig extends AbstractMongoConfiguration {
 	}
 
 	@Bean
+	@Override
 	public MongoDbFactory mongoDbFactory() {
 
 		// Set credentials
@@ -65,15 +72,13 @@ public class SpringMongoConfig extends AbstractMongoConfiguration {
 		MongoClient mongoClient = new MongoClient(serverAddress, Arrays.asList(credential));
 
 		// Mongo DB Factory
-		SimpleMongoDbFactory simpleMongoDbFactory = new SimpleMongoDbFactory(mongoClient, mongoDatabaseName);
-
-		return simpleMongoDbFactory;
+		
+		return new SimpleMongoDbFactory(mongoClient, mongoDatabaseName);
 	}
 
+	@Override
 	public @Bean MongoTemplate mongoTemplate() throws Exception {
-//		MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory());
-////	        mongoTemplate.setWriteResultChecking(WriteResultChecking.EXCEPTION);
-//		return mongoTemplate;
+
 		final MongoDbFactory factory = mongoDbFactory();
 
 		final MongoMappingContext mongoMappingContext = new MongoMappingContext();
@@ -88,55 +93,6 @@ public class SpringMongoConfig extends AbstractMongoConfiguration {
 
 	@Override
 	public MongoClient mongoClient() {
-		// TODO Auto-generated method stub
 		return null;
-	}
-	
-	
-
-//	public Mongo mongo() throws Exception {
-//		MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
-//		MongoClientOptions options = builder.connectionsPerHost(100).build();
-//
-//		MongoClient client = new MongoClient("localhost", options);
-//		client.setWriteConcern(WriteConcern.SAFE);
-//		return client;
-//	}
-//
-//	@Bean
-//	public MongoDbFactory mongoDbFactory() {
-//
-//		// Set credentials
-//		MongoCredential credential = MongoCredential.createCredential("dbUser", "serviceBrick",
-//				"mpeeDESR".toCharArray());
-//		ServerAddress serverAddress = new ServerAddress("localhost", 27017);
-//
-//		// Mongo Client
-//		MongoClient mongoClient = new MongoClient(serverAddress, Arrays.asList(credential));
-//
-//		// Mongo DB Factory
-//		SimpleMongoDbFactory simpleMongoDbFactory = new SimpleMongoDbFactory(mongoClient, "serviceBrick");
-//
-//		return simpleMongoDbFactory;
-//	}
-//
-//	public @Bean MongoTemplate mongoTemplate() throws Exception {
-//		MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory());
-////	        mongoTemplate.setWriteResultChecking(WriteResultChecking.EXCEPTION);
-//		return mongoTemplate;
-//	}
-//
-//	@Override
-//	public MongoClient mongoClient() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	protected String getDatabaseName() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//	
-	
+	}	
 }

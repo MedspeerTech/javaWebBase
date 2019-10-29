@@ -22,8 +22,14 @@ public class SimpleCORSFilter implements Filter {
         chain.doFilter(req, res);
     }
 
-    public void init(FilterConfig filterConfig) {}
+    @Override
+    public void init(FilterConfig filterConfig) {
+    	//
+    }
 
-    public void destroy() {}
+    @Override
+    public void destroy() {
+    	//
+    }
 
 }

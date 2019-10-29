@@ -7,5 +7,4 @@ public enum TokenType {
 	PASSWORDRESET,
 	MAIL_RESET,
 	PHONE_RESET
-
 }

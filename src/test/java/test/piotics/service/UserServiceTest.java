@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -45,6 +46,7 @@ import test.piotics.builder.TokenBuilder;
 import test.piotics.builder.UserShortBuilder;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.management.*")
 @PrepareForTest({ ApplicationUser.class, UserService.class })
 public class UserServiceTest {
 
@@ -76,15 +78,13 @@ public class UserServiceTest {
 
 	@Mock
 	MailService mailService;
-	
+
 	@Mock
 	UserShortMongoRepository userShortMongoRepository;
 
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		userService = new UserService(userMongoRepository, utilityManager, bCryptPasswordUtils, invitationService,
-				tokenService, userProfileService, mailService,userShortMongoRepository);
 	}
 
 	@Rule
@@ -322,29 +322,30 @@ public class UserServiceTest {
 		List<UserShort> adminUserShortLi = new ArrayList<UserShort>();
 
 		while (adminUsers.size() < 3) {
-			
-			adminUsers.add(ApplicationUserBuilder.anApplicationUser().withUsername("username_" + adminUsers.size()).build());
+
+			adminUsers.add(
+					ApplicationUserBuilder.anApplicationUser().withUsername("username_" + adminUsers.size()).build());
 			adminUserShortLi.add(UserShortBuilder.aUserShort().build());
 		}
-		
+
 		Optional<UserShort> userShortOptional = Optional.of(adminUserShortLi.get(0));
 		when(userMongoRepository.findByRole(UserRoles.ROLE_ADMIN)).thenReturn(adminUsers);
 		when(userShortMongoRepository.findById(adminUsers.get(0).getId())).thenReturn(userShortOptional);
-		
+
 		List<UserShort> responseUserShorts = userService.getUserShortOfAdmins();
-		
+
 		assertThat(responseUserShorts).isNotNull();
 		assertThat(responseUserShorts).isNotEmpty();
 	}
-	
+
 	@Test
 	public void getUserShortShouldSuccess() {
-		
+
 		String id = "5d38540043cb13581a800525";
 		UserShort userShort = UserShortBuilder.aUserShort().build();
-		
+
 		when(userShortMongoRepository.findById(id)).thenReturn(Optional.of(userShort));
-		
+
 		UserShort responseUserShort = userService.getUserShort(id);
 		assertThat(userShort).isEqualsToByComparingFields(responseUserShort);
 	}

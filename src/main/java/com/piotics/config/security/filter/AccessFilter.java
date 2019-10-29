@@ -25,62 +25,33 @@ public class AccessFilter {
 	PostService postService;
 
 	public boolean hasAccess(Authentication authentication, String userId) {
-
 		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
 		return (applicationUser.getId().equals(userId));
 	}
 
 	public boolean hasAccessToDeletePost(Authentication authentication, String postId) {
-
 		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
 		Post post = postService.getPost(postId);
-
-		if (applicationUser.getId() != post.getCreator().getId()) {
-
-			if (applicationUser.getRole().equals(UserRoles.ROLE_ADMIN)) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-
-			return true;
-		}
-
+		return (applicationUser.getId().equals(post.getCreator().getId())
+				|| applicationUser.getRole().equals(UserRoles.ROLE_ADMIN)
+				|| applicationUser.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
 	}
 
 	public boolean hasAccessToEditPost(Authentication authentication, String postId) {
-
 		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
 		Post post = postService.getPost(postId);
-
-		if (!applicationUser.getId().equals(post.getCreator().getId()))
-			return false;
-
-		else
-			return true;
+		return (!applicationUser.getId().equals(post.getCreator().getId()));
 	}
 
 	public boolean isAdmin(Authentication authentication) {
-
 		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
-
-		if (applicationUser.getRole().equals(UserRoles.ROLE_ADMIN)) {
-			return true;
-		} else {
-			return false;
-		}
-
+		return (applicationUser.getRole().equals(UserRoles.ROLE_ADMIN)
+				|| applicationUser.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
 	}
 
-	public boolean hasTenantCreationAccess(Authentication authentication) throws Exception {
-
-		boolean bool = false;
+	public boolean hasTenantCreationAccess(Authentication authentication) {
 		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
-		if (applicationUser.getRole().equals(UserRoles.ROLE_POWER_ADMIN))
-			if (tenatEnabled)
-				bool = true;
-		return bool;
+		return (applicationUser.getRole().equals(UserRoles.ROLE_POWER_ADMIN) && tenatEnabled);
 	}
 
 }

@@ -23,13 +23,11 @@ public class TokenManager {
 	public Token getTokenForEmailVerification(String username) {
 		Date date = Date.from(timeManager.getCurrentTimestamp().toInstant());
 		return new Token(username,getToken(),TokenType.EMAILVERIFICATION,date);
-		
 	}
 	
 	public Token getTokenForPasswordReset(String username) {
 		Date date = Date.from(timeManager.getCurrentTimestamp().toInstant());
 		return new Token(username,getToken(),TokenType.PASSWORDRESET,date);
-		
 	}
 
 	public Token getTokenForInvite(String username) {

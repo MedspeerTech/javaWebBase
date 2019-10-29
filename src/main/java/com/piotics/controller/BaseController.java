@@ -44,7 +44,6 @@ public class BaseController {
 	public ResponseEntity<ExceptionResource> processValidationError(MethodArgumentNotValidException ex) {
 		ex.printStackTrace();
 		BindingResult result = ex.getBindingResult();
-//		FieldError error = result.getFieldError();
 		ObjectError error = result.getAllErrors().get(0);
 		ExceptionResource exceptionResource = new ExceptionResource(error.getDefaultMessage());
 		return new ResponseEntity<>(exceptionResource,HttpStatus.BAD_REQUEST);
@@ -65,19 +64,18 @@ public class BaseController {
 		ObjectMapper mapper = new ObjectMapper();
 		ExceptionResource exceptionResource = mapper.readValue(ex.getResponseBodyAsString(), ExceptionResource.class);
 
-		return new ResponseEntity(exceptionResource, ex.getStatusCode());
+		return new ResponseEntity<>(exceptionResource, ex.getStatusCode());
 	}
 
 	@ExceptionHandler({ HttpServerErrorException.class })
 	public ResponseEntity<ExceptionResource> handleHttpServerException(HttpServerErrorException ex) throws IOException {
-//        DcUser currentUser = (DcUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		logger.log(Level.INFO, ex.getMessage(), ex);
 		ObjectMapper mapper = new ObjectMapper();
 		ExceptionResource exceptionResource = mapper.readValue(ex.getResponseBodyAsString(), ExceptionResource.class);
 		if (ex.getStatusText() != null) {
 			exceptionResource.setMessage(ex.getStatusText());
 		}
-		return new ResponseEntity(exceptionResource, HttpStatus.EXPECTATION_FAILED);
+		return new ResponseEntity<>(exceptionResource, HttpStatus.EXPECTATION_FAILED);
 	}
 
 	@ExceptionHandler({ ConnectException.class })
@@ -99,16 +97,16 @@ public class BaseController {
 		ExceptionResource exceptionResource = new ExceptionResource(ex.getMessage());
 
 		if (ex.getMessage().equals("wrong password"))
-			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(exceptionResource, HttpStatus.BAD_REQUEST);
 		if(ex.getMessage().equals("Access is denied"))
-			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.UNAUTHORIZED);
+			return new ResponseEntity<>(exceptionResource, HttpStatus.UNAUTHORIZED);
 		if (ex.getMessage().equals("no change found"))
-			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.NOT_MODIFIED);
+			return new ResponseEntity<>(exceptionResource, HttpStatus.NOT_MODIFIED);
 		if (ex.getMessage().equals("user not invited") || ex.getMessage().equals("no valid request for change mail")
 				|| ex.getMessage().equals("not a valid email") || ex.getMessage().equals("wrong password"))
-			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.FORBIDDEN);
+			return new ResponseEntity<>(exceptionResource, HttpStatus.FORBIDDEN);
 
-		return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.EXPECTATION_FAILED);
+		return new ResponseEntity<>(exceptionResource, HttpStatus.EXPECTATION_FAILED);
 	}
 	
 	@ExceptionHandler({ FileException.class })
@@ -118,9 +116,9 @@ public class BaseController {
 		ExceptionResource exceptionResource = new ExceptionResource(ex.getMessage());
 
 		if (ex.getMessage().equals("unsuppoted file format"))
-			return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+			return new ResponseEntity<>(exceptionResource, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 
-		return new ResponseEntity<ExceptionResource>(exceptionResource, HttpStatus.EXPECTATION_FAILED);
+		return new ResponseEntity<>(exceptionResource, HttpStatus.EXPECTATION_FAILED);
 	}
 
 }

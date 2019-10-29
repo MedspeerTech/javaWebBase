@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormatSymbols;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +15,6 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +73,7 @@ public class FileService {
 
 	public FileMeta saveFile(ApplicationUser applicationUser, MultipartFile file) throws IOException {
 
-		List<String> supportedFormats = new ArrayList<String>(Arrays.asList(fileTypesSupported));
+		List<String> supportedFormats = new ArrayList<>(Arrays.asList(fileTypesSupported));
 
 		if (!supportedFormats.contains("all") && !supportedFormats.contains(file.getContentType()))
 			throw new FileException("unsuppoted file format");
@@ -90,7 +88,6 @@ public class FileService {
 		} else if (isVideoFile(updatedFileMeta)) {
 
 			updatedFileMeta = saveFileToDisk(applicationUser, file, videoStorageLocation);
-//			conversionsService.convertVideos();
 
 		} else if (isPdfFile(updatedFileMeta)) {
 
@@ -157,9 +154,9 @@ public class FileService {
 			if (!hasFolder(storageLocationPath + year))
 				(new File(storageLocationPath + year)).mkdir();
 
-			if (!hasFolder(storageLocationPath + year + "/" + month)) {
-				(new File(storageLocationPath + year + "/" + month)).mkdir();
-				generateFolderSturctureInsideMonth(storageLocationPath + year + "/" + month);
+			if (!hasFolder(storageLocationPath + year + File.separator + month)) {
+				(new File(storageLocationPath + year + File.separator + month)).mkdir();
+				generateFolderSturctureInsideMonth(storageLocationPath + year + File.separator + month);
 			}
 
 			return saveToDisc(applicationUser, file, storageLocation);
@@ -178,9 +175,10 @@ public class FileService {
 			String fileNameWithExt = file.getOriginalFilename();
 
 			String fileName = getRandomUUID();
-			String fileExtention = fileNameWithExt.substring(fileNameWithExt.lastIndexOf("."));
+			String fileExtention = fileNameWithExt.substring(fileNameWithExt.lastIndexOf('.'));
 
-			String folderRelativePath = year + "/" + month + "/" + storageLocation + fileName + "/";
+			String folderRelativePath = year + File.separator + month + File.separator + storageLocation + fileName
+					+ File.separator;
 			String folderFullPath = storageLocationPath + folderRelativePath;
 			String fileFullPath = folderFullPath + "/original" + fileExtention;
 
@@ -190,7 +188,7 @@ public class FileService {
 			Path path = Paths.get(fileFullPath);
 
 			Files.write(path, bytes);
-//		return saveFilemeta(applicationUser, fileNameWithExt, file, folderRelativePath);
+
 			return saveFilemeta(applicationUser, "original" + fileExtention, file, folderRelativePath);
 		} catch (NoSuchFileException e) {
 
@@ -200,34 +198,21 @@ public class FileService {
 
 	private void generateFolderSturctureInsideMonth(String path) {
 
-		(new File(path + "/" + imageStorageLocation)).mkdir();
-		(new File(path + "/" + videoStorageLocation)).mkdir();
-		(new File(path + "/" + presentationsStorageLocation)).mkdir();
-		(new File(path + "/" + documentStorageLocation)).mkdir();
-		(new File(path + "/" + userProfileImageStorageLocation)).mkdir();
+		(new File(path + File.separator + imageStorageLocation)).mkdir();
+		(new File(path + File.separator + videoStorageLocation)).mkdir();
+		(new File(path + File.separator + presentationsStorageLocation)).mkdir();
+		(new File(path + File.separator + documentStorageLocation)).mkdir();
+		(new File(path + File.separator + userProfileImageStorageLocation)).mkdir();
 	}
 
 	private boolean hasFolder(String path) {
-
 		File file = new File(path);
-
-		if (file != null) {
-			if (file.isDirectory()) {
-
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
-		}
+		return (file.exists() && file.isDirectory());
 	}
 
 	private String getRandomUUID() {
 
-		final String uuid = UUID.randomUUID().toString().replace("-", "");
-		return uuid;
-
+		return UUID.randomUUID().toString().replace("-", "");
 	}
 
 	public FileMeta saveFilemeta(ApplicationUser applicationUser, String fileName, MultipartFile file, String path) {
@@ -256,20 +241,20 @@ public class FileService {
 		FileType fileType;
 		if (isVideoFile(fileMeta)) {
 
-			fileType = FileType.Video;
+			fileType = FileType.VIDEO;
 		} else if (isImageFile(fileMeta)) {
 
-			fileType = FileType.Image;
+			fileType = FileType.IMAGE;
 		} else if (isPdfFile(fileMeta)) {
 
 			fileType = FileType.PDF;
 		} else if (isDoc(fileMeta)) {
 
-			fileType = FileType.Document;
+			fileType = FileType.DOCUMENT;
 
 		} else if (isPresentation(fileMeta)) {
 
-			fileType = FileType.Presentation;
+			fileType = FileType.PRESENTATION;
 		} else {
 
 			throw new FileUploadException(
@@ -282,36 +267,33 @@ public class FileService {
 
 	private void saveFileToConversion(FileMeta updatedFileMeta) {
 
-		final ZoneId systemDefault = ZoneId.systemDefault();
 		Conversion conversion = new Conversion(updatedFileMeta.getCreationDate(), updatedFileMeta.getType(),
 				updatedFileMeta.getPath());
-
 		conversionMongoRepository.save(conversion);
-
 	}
 
-	public Optional<FileMeta> getFileMeta(String id) {
-		Optional<FileMeta> fileMeta = fileMetaMongoRepository.findById(id);
+	public FileMeta getFileMeta(String id) {
+		FileMeta fileMeta = new FileMeta();
+		Optional<FileMeta> fileMetaOptional = fileMetaMongoRepository.findById(id);
+		if (fileMetaOptional.isPresent())
+			fileMeta = fileMetaOptional.get();
 		return fileMeta;
 	}
 
-	public Path getVideoPath(String fileId, HttpServletRequest httprequest, HttpServletResponse httpresponse) {
-		Optional<FileMeta> fileMeta = this.getFileMeta(fileId);
-		String folderRelativePath = fileMeta.get().getPath();
+	public Path getVideoPath(String fileId) {
+		FileMeta fileMeta = this.getFileMeta(fileId);
+		String folderRelativePath = fileMeta.getPath();
 		String folderFullPath = storageLocationPath + folderRelativePath;
-		String contentType = fileMeta.get().getOriginalContentType();
+		String contentType = fileMeta.getOriginalContentType();
 
-		String fileName = "/file.mp4";
+		String fileName = File.separator + "file.mp4";
 		if (contentType.equals("video/mp4")) {
-			fileName = "/file.mp4";
+			fileName = File.separator + "file.mp4";
 		} else if (contentType.equals("video/webm")) {
-			fileName = "/file.webm";
+			fileName = File.separator + "file.webm";
 		}
-
 		String fileFullPath = folderFullPath + fileName;
-		Path path = Paths.get(fileFullPath);
-
-		return path;
+		return Paths.get(fileFullPath);
 	}
 
 	public byte[] getImage(Integer fileId) {
@@ -319,18 +301,6 @@ public class FileService {
 		if (ff.isPresent()) {
 			FileMeta fileMeta = ff.get();
 			String folderFullPath = storageLocationPath + fileMeta.getPath();
-			String fileExt = ".png";
-
-			if (fileMeta.getOriginalContentType().equals("image/png")) {
-				fileExt = ".png";
-			} else if (fileMeta.getOriginalContentType().equals("image/jpeg")) {
-				fileExt = ".jpeg";
-			} else if (fileMeta.getOriginalContentType().equals("image/jpg")) {
-				fileExt = ".jpg";
-			}
-
-//			String fileFullPath = folderFullPath + "original" + fileExt;
-
 			File file = null;
 			File dir = new File(folderFullPath);
 			File[] directoryListing = dir.listFiles();
@@ -339,10 +309,9 @@ public class FileService {
 					file = child;
 			}
 
-//			File file = new File(fileFullPath);
 			try {
-				byte[] fileContent = Files.readAllBytes(file.toPath());
-				return fileContent;
+				if (file!=null)
+					return Files.readAllBytes(file.toPath());
 			} catch (IOException e) {
 				throw new ResourceNotFoundException();
 			}
@@ -355,11 +324,10 @@ public class FileService {
 		Optional<FileMeta> ff = fileMetaMongoRepository.findById(fileId);
 		if (ff.isPresent()) {
 			FileMeta fileMeta = ff.get();
-			String path = fileMeta.getPath().substring(0, fileMeta.getPath().lastIndexOf("/") + 1) + "file_preview.jpg";
+			String path = fileMeta.getPath().substring(0, fileMeta.getPath().lastIndexOf('/') + 1) + "file_preview.jpg";
 			File file = new File(storageLocationPath + path);
 			try {
-				byte[] fileContent = Files.readAllBytes(file.toPath());
-				return fileContent;
+				return Files.readAllBytes(file.toPath());
 			} catch (IOException e) {
 				throw new ResourceNotFoundException();
 			}
@@ -371,12 +339,11 @@ public class FileService {
 		Optional<FileMeta> ff = fileMetaMongoRepository.findById(fileId);
 		if (ff.isPresent()) {
 			FileMeta fileMeta = ff.get();
-			String path = storageLocationPath + fileMeta.getPath().substring(0, fileMeta.getPath().lastIndexOf("/") + 1)
+			String path = storageLocationPath + fileMeta.getPath().substring(0, fileMeta.getPath().lastIndexOf('/') + 1)
 					+ slideNo + ".jpg";
 			File file = new File(path);
 			try {
-				byte[] fileContent = Files.readAllBytes(file.toPath());
-				return fileContent;
+				return Files.readAllBytes(file.toPath());
 			} catch (IOException e) {
 				throw new ResourceNotFoundException();
 			}
@@ -390,18 +357,11 @@ public class FileService {
 			FileMeta fileMeta = ff.get();
 			String relativePath = fileMeta.getPath();
 
-//			String fileExt = ".pdf";
-//			if (fileMeta.getOriginalContentType().equals("application/pdf")) {
-//				fileExt = ".pdf";
-//			}
-//
-//			String fileName = "original" + fileExt;
 			String fileName = fileMeta.getName();
 			String path = storageLocationPath + relativePath + fileName;
 			File file = new File(path);
 			try {
-				byte[] fileContent = Files.readAllBytes(file.toPath());
-				return fileContent;
+				return Files.readAllBytes(file.toPath());
 			} catch (IOException e) {
 				throw new ResourceNotFoundException();
 			}
@@ -411,7 +371,11 @@ public class FileService {
 
 	public FileMeta getFileById(String id) {
 
-		return fileMetaMongoRepository.findById(id).get();
+		Optional<FileMeta> fileMetaOptional = fileMetaMongoRepository.findById(id);
+		FileMeta fileMeta = new FileMeta();
+		if (fileMetaOptional.isPresent())
+			fileMeta = fileMetaOptional.get();
+		return fileMeta;
 	}
 
 	private int getCurrentYear() {
@@ -421,8 +385,7 @@ public class FileService {
 
 	private String getCurrentMonth() {
 
-		String month = Calendar.getInstance().getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
-		return month;
+		return Calendar.getInstance().getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
 	}
 
 }

@@ -1,6 +1,5 @@
 package com.piotics.controller;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -8,15 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
 import com.piotics.common.utils.HttpServletRequestUtils;
 import com.piotics.config.JwtTokenProvider;
 import com.piotics.model.PasswordReset;
@@ -34,31 +33,31 @@ public class UserController {
 	@Autowired
 	HttpServletRequestUtils httpServletRequestUtils;
 
-	@RequestMapping(value = "/signUp", method = RequestMethod.POST)
-	public ResponseEntity SignUp(@Valid @RequestBody SignUpUser signUpUser) throws Exception {
+	@PostMapping(value = "/signUp")
+	public ResponseEntity signUp(@Valid @RequestBody SignUpUser signUpUser) throws Exception {
 		userService.signUp(signUpUser);
 		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
 
-	@RequestMapping(value = "/verifyEmail", method = RequestMethod.POST)
+	@PostMapping(value = "/verifyEmail")
 	public ResponseEntity verifyEmail(@Valid @RequestBody Token token) {
 		userService.verifyEmail(token);
 		return new ResponseEntity(HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/forgotPassword", method = RequestMethod.GET)
+	@GetMapping(value = "/forgotPassword")
 	public ResponseEntity forgotPassword(@RequestParam String username) {
 		userService.forgotPassword(username);
 		return new ResponseEntity(HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/resetPassword", method = RequestMethod.POST)
+	@PostMapping(value = "/resetPassword")
 	public ResponseEntity resetPassword(@Valid @RequestBody PasswordReset passwordReset) {
 		userService.resetPassword(passwordReset);
 		return new ResponseEntity(HttpStatus.ACCEPTED);
 	}
 
-	@RequestMapping(value = "/verifyIdToken", method = RequestMethod.POST)
+	@PostMapping(value = "/verifyIdToken")
 	public ResponseEntity verifyIdToken(Authentication authentication, @RequestParam String idToken,
 			HttpServletResponse res) throws FirebaseAuthException {
 //		FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);

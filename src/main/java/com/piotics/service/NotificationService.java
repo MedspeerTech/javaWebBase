@@ -11,14 +11,13 @@ import org.springframework.stereotype.Service;
 import com.piotics.common.NotificationType;
 import com.piotics.common.TimeManager;
 import com.piotics.common.utils.UtilityManager;
-import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Notification;
 import com.piotics.model.UserShort;
 import com.piotics.repository.NotificationMongoRepository;
 import com.piotics.repository.NotificationMongoTemplateImpl;
-import com.piotics.resources.NotificationResource;;
+import com.piotics.resources.NotificationResource;
 
 @Service
 public class NotificationService {
@@ -40,18 +39,6 @@ public class NotificationService {
 
 	@Autowired
 	NotificationMongoTemplateImpl notificationMongoTemplateImpl;
-
-	public NotificationService(NotificationMongoRepository notificationMongoRepository, UtilityManager utilityManager,
-			UserService userService, TimeManager timeManager, UserProfileService userProfileService,
-			NotificationMongoTemplateImpl notificationMongoTemplateImpl) {
-
-		this.notificationMongoRepository =notificationMongoRepository;
-		this.utilityManager = utilityManager;
-		this.userService = userService;
-		this.timeManager = timeManager;
-		this.userProfileService = userProfileService;
-		this.notificationMongoTemplateImpl = notificationMongoTemplateImpl;
-	}
 
 	public void notifyAdminsOnUserInvite(ApplicationUser applicationUser, Invitation item, String title) {
 		UserShort owner = userService.getUserShort(applicationUser.getId());

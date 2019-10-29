@@ -1,7 +1,6 @@
 package test.piotics.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -15,18 +14,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 
 import com.piotics.common.TokenType;
 import com.piotics.common.utils.BCryptPasswordUtils;
 import com.piotics.common.utils.UtilityManager;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
-import com.piotics.model.PasswordReset;
 import com.piotics.model.PasswordResetResource;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
@@ -39,12 +35,12 @@ import com.piotics.service.UserProfileService;
 import com.piotics.service.UserService;
 
 import test.piotics.builder.ApplicationUserBuilder;
-import test.piotics.builder.PasswordResetBuilder;
 import test.piotics.builder.PasswordResetResourceBuilder;
 import test.piotics.builder.TokenBuilder;
 import test.piotics.builder.UserProfileBuilder;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.management.*")
 @PrepareForTest({ UserProfile.class, UserProfileService.class })
 public class UserProfileServiceTest {
 
@@ -81,8 +77,6 @@ public class UserProfileServiceTest {
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		userProfileService = new UserProfileService(fileService, userProfileMongoRepository, userService, tokenService,
-				mailService, userMongoRepository, bCryptPasswordUtils, utilityManager);
 	}
 
 	@Rule

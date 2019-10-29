@@ -45,30 +45,27 @@ public class Activity implements Serializable{
 	}
 
 	public Activity() {
-		// TODO Auto-generated constructor stub
 	}
 
 	public Activity(String id, UserShort actor2, ActivityMarker activityMarker2) {
 		this.id = id;
 		this.actor = actor2;
 		this.activityMarker = activityMarker2;
-		// TODO Auto-generated constructor stub
+
 	}
 
-//	public Activity(Post post) {
-//		this.activityMarker = post;
+
+//	public Activity(String id, String ownerId, String target, UserShort actor, Date publishedOn, List<Comment> comments,
+//			ActivityMarker activityMarker) {
+//		
+//		this.id = id;
+//		this.target = Targets.POST;
+//		this.actor = actor;
+//		this.publishedOn = publishedOn;
+//		this.comments = comments;
+//		this.activityMarker = activityMarker;
+//		this.ownerId = ownerId;
 //	}
-
-	public Activity(String id, String ownerId, String target, UserShort actor, Date publishedOn, List<Comment> comments,
-			ActivityMarker activityMarker) {
-		
-		this.id = id;
-		this.target = Targets.POST;
-		this.actor = actor;
-		this.publishedOn = publishedOn;
-		this.comments = comments;
-		this.activityMarker = activityMarker;
-	}
 
 	public String getId() {
 		return id;

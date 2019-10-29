@@ -56,7 +56,7 @@ public class ConversionsService {
 		String folderRelativePath = fileMeta.getPath();
 
 		try {
-			if (fileMeta.getType() == FileType.Video) {
+			if (fileMeta.getType() == FileType.VIDEO) {
 				String folderFullpath = storageLocationPath + folderRelativePath;
 				File inputFile = null;
 
@@ -75,13 +75,13 @@ public class ConversionsService {
 						.setVideoFilter("select='gte(n\\,10)',scale=200:-1").done();
 				FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
 				executor.createJob(builder).run();
-			} else if (fileMeta.getType() == FileType.Presentation) {
+			} else if (fileMeta.getType() == FileType.PRESENTATION) {
 				presentationService.initiatePresentationConversion();
 				presentationService.generatePreview(fileMeta);
 			} else if (fileMeta.getType() == FileType.PDF) {
 				pdfService.initiatePdfConversion();
 				pdfService.generatePreview(fileMeta);
-			} else if (fileMeta.getType() == FileType.Document) {
+			} else if (fileMeta.getType() == FileType.DOCUMENT) {
 				wordService.generatePreview(fileMeta);
 			}
 
@@ -99,7 +99,7 @@ public class ConversionsService {
 		FileMeta fileMeta = new FileMeta();
 		try {
 			while (!isConversionInProgress) {
-				List<Conversion> filesToConvert = conversionMongoRepository.findByFileTypeAndLogNull(FileType.Video);
+				List<Conversion> filesToConvert = conversionMongoRepository.findByFileTypeAndLogNull(FileType.VIDEO);
 
 				if (!filesToConvert.isEmpty()) {
 

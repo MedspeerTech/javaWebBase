@@ -7,8 +7,6 @@ public class EMail {
     private String subject;
     private String message;
 
-
-
     public String getMessage() {
         return message;
     }

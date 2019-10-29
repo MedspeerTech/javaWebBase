@@ -2,13 +2,12 @@ package com.piotics.controller;
 
 import java.security.Principal;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,7 +24,7 @@ public class HomeController {
 	@Autowired
 	UserProfileService userProfileService;
 
-	@RequestMapping(method = RequestMethod.GET, value = "/api/session")
+	@GetMapping(value = "/api/session")
     public ResponseEntity<ResponseObj> getSession(Principal principal)
     {
         if(principal==null){
