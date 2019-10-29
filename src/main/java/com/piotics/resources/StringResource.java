@@ -5,7 +5,7 @@ import java.util.List;
 
 public class StringResource implements Serializable {
 	
-	List<String> strings;
+	private List<String> strings;
 
 	public StringResource(List<String> strings) {
 		
