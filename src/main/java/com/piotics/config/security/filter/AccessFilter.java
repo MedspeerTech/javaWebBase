@@ -48,6 +48,21 @@ public class AccessFilter {
 		return (applicationUser.getRole().equals(UserRoles.ROLE_ADMIN)
 				|| applicationUser.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
 	}
+	
+	public boolean isPowerAdmin(Authentication authentication) {
+		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
+		return (applicationUser.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
+	}
+	
+	/**
+	 * need some changes in application user - userRole
+	 * @param authentication
+	 * @return
+	 */
+	public boolean isCompanyAdmin(Authentication authentication) {
+		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
+		return (applicationUser.getRole().equals(UserRoles.ROLE_ADMIN));
+	}
 
 	public boolean hasTenantCreationAccess(Authentication authentication) {
 		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();

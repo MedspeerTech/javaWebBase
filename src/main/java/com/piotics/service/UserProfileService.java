@@ -1,5 +1,7 @@
 package com.piotics.service;
 
+import java.util.Optional;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -45,21 +47,6 @@ public class UserProfileService {
 	@Autowired
 	UtilityManager utilityManager;
 
-	public UserProfileService(FileService fileService, UserProfileMongoRepository userProfileMongoRepository,
-			UserService userService, TokenService tokenService, MailService mailService,
-			UserMongoRepository userMongoRepository, BCryptPasswordUtils bCryptPasswordUtils,
-			UtilityManager utilityManager) {
-
-		this.fileService = fileService;
-		this.userProfileMongoRepository = userProfileMongoRepository;
-		this.userService = userService;
-		this.tokenService = tokenService;
-		this.mailService = mailService;
-		this.userMongoRepository = userMongoRepository;
-		this.bCryptPasswordUtils = bCryptPasswordUtils;
-		this.utilityManager = utilityManager;
-	}
-
 	public UserProfileService() {
 	}
 
@@ -69,14 +56,21 @@ public class UserProfileService {
 	}
 
 	public UserProfile getProfile(String id) {
-
-		UserProfile userProfile = userProfileMongoRepository.findById(id).get();
+		Optional<UserProfile> userProfileOptional = userProfileMongoRepository.findById(id);
+		UserProfile userProfile = new UserProfile();
+		if (userProfileOptional.isPresent()) {
+			userProfile = userProfileOptional.get();
+		}
 		return userProfile;
 	}
 
 	public UserProfile saveProfile(UserProfile userProfile) {
 
-		UserProfile dbUserProfile = userProfileMongoRepository.findById(userProfile.getId()).get();
+		Optional<UserProfile> userProfileOptional = userProfileMongoRepository.findById(userProfile.getId());
+		UserProfile dbUserProfile = new UserProfile();
+		if (userProfileOptional.isPresent()) {
+			userProfile = userProfileOptional.get();
+		}
 
 		BeanUtils.copyProperties(userProfile, dbUserProfile, "email", "phone", "id");
 
@@ -85,16 +79,16 @@ public class UserProfileService {
 		return dbUserProfile;
 	}
 
-	public UserProfile changeMail(ApplicationUser applicationUser, String mail) throws Exception {
+	public UserProfile changeMail(ApplicationUser applicationUser, String mail){
 
 		if (!utilityManager.isEmail(mail))
-			throw new Exception("not a valid email");
+			throw new UserException("not a valid email");
 
 		if (userService.isExistingUser(mail))
 			throw new UserException("email already registered");
 
-		if (applicationUser.getEmail() == mail)
-			throw new Exception("no change found");
+		if (applicationUser.getEmail().equals(mail))
+			throw new UserException("no change found");
 
 		try {
 
@@ -118,12 +112,12 @@ public class UserProfileService {
 		return null;
 	}
 
-	public void verifyNewMail(ApplicationUser applicationUser, String token) throws Exception {
+	public void verifyNewMail(ApplicationUser applicationUser, String token){
 
 		Token dbToken = tokenService.getTokenFromDbByUserIdAndTokenType(applicationUser.getId(), TokenType.MAIL_RESET);
 
 		if (dbToken == null)
-			throw new Exception("no valid request for change mail");
+			throw new UserException("no valid request for change mail");
 
 		tokenService.isTokenValid(dbToken);
 
@@ -140,14 +134,13 @@ public class UserProfileService {
 		tokenService.deleteToken(dbToken);
 	}
 
-	public void changePassword(ApplicationUser applicationUser, PasswordResetResource passwordresetResource)
-			throws Exception {
+	public void changePassword(ApplicationUser applicationUser, PasswordResetResource passwordresetResource){
 
 		if (!bCryptPasswordUtils.isMatching(passwordresetResource.getPassword(), applicationUser.getPassword()))
-			throw new Exception("wrong password");
+			throw new UserException("wrong password");
 
 		if (bCryptPasswordUtils.isMatching(passwordresetResource.getNewPassword(), applicationUser.getPassword()))
-			throw new Exception("no change found");
+			throw new UserException("no change found");
 
 		applicationUser.setPassword(bCryptPasswordUtils.encodePassword(passwordresetResource.getNewPassword()));
 
@@ -156,6 +149,10 @@ public class UserProfileService {
 
 	public UserProfile getProfileByMail(String email) {
 		return userProfileMongoRepository.findByEmail(email);
+	}
+
+	public UserProfile getProfileByPhone(String phone) {
+		return userProfileMongoRepository.findByPhone(phone);
 	}
 
 }

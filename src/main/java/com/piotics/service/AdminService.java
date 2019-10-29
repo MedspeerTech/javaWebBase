@@ -4,17 +4,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import com.piotics.common.utils.UtilityManager;
+import com.piotics.constants.UserRoles;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
+import com.piotics.model.Tenant;
 import com.piotics.model.Token;
+import com.piotics.model.UserProfile;
 import com.piotics.model.UserShort;
 import com.piotics.resources.StringResource;
+import com.piotics.resources.TenantInviteResource;
 
 @Service
+@PropertySource("classpath:setup.properties")
 public class AdminService {
 
 	@Autowired
@@ -35,37 +42,22 @@ public class AdminService {
 	@Autowired
 	UtilityManager utilityManager;
 
-//	public Invitation invite(ApplicationUser applicationUser, Invitation invitation) throws Exception {
-//
-//		String phone = invitation.getPhone();
-//		String email = invitation.getEmail();
-//		String notificationTitle = "";
-//
-//		if (email != null && !email.isEmpty()) {
-//
-//			sendInvite(email, invitation);
-//			notificationTitle = email;
-//
-//		} else if (phone != null && !phone.isEmpty()) {
-//
-//			sendInvite(phone, invitation);
-//			notificationTitle = phone;
-//
-//		} else {
-//			throw new UserException("username not provided");
-//		}
-//
-//		notificationService.notifyAdminsOnUserInvite(applicationUser, invitation, notificationTitle);
-//		return invitation;
-//	}
+	@Autowired
+	UserProfileService userProfileService;
 
-	public StringResource senInvite(ApplicationUser applicationUser, StringResource invitationLi) throws Exception {
+	@Autowired
+	TenantService tenantService;
+
+	@Value("${tenant.enabled}")
+	boolean tenatEnabled;
+
+	public StringResource sendInvite(ApplicationUser applicationUser, StringResource invitationLi) {
 
 		List<Invitation> invitations = populateStringsToInvitation(applicationUser, invitationLi);
 		return invite(applicationUser, invitations);
 	}
 
-	public StringResource invite(ApplicationUser applicationUser, List<Invitation> invitations) throws Exception {
+	public StringResource invite(ApplicationUser applicationUser, List<Invitation> invitations) {
 
 		List<String> failedList = new ArrayList<>();
 		String notificationTitle = "";
@@ -78,24 +70,20 @@ public class AdminService {
 
 					emailOrPhone = invitation.getEmail();
 					sendInvite(invitation.getEmail(), invitation);
-					notificationTitle = invitation.getEmail();
 
 				} else if (invitation.getPhone() != null && !invitation.getPhone().isEmpty()) {
 
 					emailOrPhone = invitation.getPhone();
 					sendInvite(invitation.getPhone(), invitation);
-					notificationTitle = invitation.getPhone();
 				}
-				notificationService.notifyAdminsOnUserInvite(applicationUser, invitation, notificationTitle);
 
 			} catch (UserException e) {
 
 				failedList.add(emailOrPhone);
 			}
 		}
-		StringResource stringResource = new StringResource(failedList);
 
-		return stringResource;
+		return new StringResource(failedList);
 	}
 
 	private List<Invitation> populateStringsToInvitation(ApplicationUser applicationUser, StringResource invitationLi) {
@@ -106,13 +94,13 @@ public class AdminService {
 			Invitation invitation = new Invitation();
 			UserShort invitedBy = userService.getUserShort(applicationUser.getId());
 			invitation.setInvitedBY(invitedBy);
-
 			if (utilityManager.isEmail(invitedId)) {
 
 				invitation.setEmail(invitedId);
 			} else {
 				invitation.setPhone(invitedId);
 			}
+			
 
 			invitations.add(invitation);
 		}
@@ -142,10 +130,53 @@ public class AdminService {
 			}
 
 		} else {
-			throw new UserException("existing user");
+
+			if (tenatEnabled) {
+				UserProfile userProfile = new UserProfile();
+				if (utilityManager.isEmail(username)) {
+					userProfile = userProfileService.getProfileByMail(username);
+				} else {
+					userProfile = userProfileService.getProfileByPhone(username);
+				}
+				Tenant tenant = tenantService.getTenantById(invitation.getTenantId());
+				tenantService.updateTenatRelation(userProfile, tenant, UserRoles.ROLE_USER);
+				notificationService.notifyUserOnTenantInvitation(userProfile,invitation);
+			} else {
+				throw new UserException("existing user");
+			}
 		}
 
 		return invitation;
+	}
+
+	public StringResource sendTenantInvite(ApplicationUser applicationUser, List<TenantInviteResource> invitationLi) {
+		
+		List<Invitation> invitations = populateTenantInviteResourceToInvitation(applicationUser, invitationLi);
+		return invite(applicationUser, invitations);
+	}
+
+	private List<Invitation> populateTenantInviteResourceToInvitation(ApplicationUser applicationUser,
+			List<TenantInviteResource> invitationLi) {
+		List<Invitation> invitations = new ArrayList<>();
+		
+		
+		for (TenantInviteResource inviteResource : invitationLi) {
+
+			Invitation invitation = new Invitation();
+			UserShort invitedBy = userService.getUserShort(applicationUser.getId());
+			invitation.setInvitedBY(invitedBy);
+			invitation.setTenantId(inviteResource.getTenantId());
+			invitation.setUserRole(inviteResource.getUserRole());
+			if (utilityManager.isEmail(inviteResource.getUsername())) {
+
+				invitation.setEmail(inviteResource.getUsername());
+			} else {
+				invitation.setPhone(inviteResource.getUsername());
+			}
+			invitations.add(invitation);
+		}
+
+		return invitations;
 	}
 
 }

@@ -2,11 +2,15 @@ package com.piotics.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import com.piotics.constants.UserRoles;
+import com.piotics.exception.ResourceNotFoundException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Tenant;
@@ -14,6 +18,7 @@ import com.piotics.model.TenantRelation;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
 import com.piotics.repository.TenantMongoRepository;
+import com.piotics.repository.UserProfileMongoRepository;
 
 @Service
 public class TenantService {
@@ -36,6 +41,9 @@ public class TenantService {
 	@Autowired
 	AdminService adminService;
 
+	@Autowired
+	UserProfileMongoRepository userProfileMongoRepository;
+
 	public Tenant createTenant(ApplicationUser applicationUser, Tenant tenant) throws Exception {
 
 		if (userService.isExistingUser(tenant.getOwnerEmail())) {
@@ -43,10 +51,10 @@ public class TenantService {
 			UserProfile userProfile = userProfileService.getProfileByMail(tenant.getOwnerEmail());
 			tenant.setOwnerId(userProfile.getId());
 
-			userProfile = updateTenatRelation(userProfile, tenant);
+			userProfile = updateTenatRelation(userProfile, tenant, UserRoles.ROLE_ADMIN);
 			userProfileService.save(userProfile);
 			tenantMongoRepository.save(tenant);
-			
+
 			mailService.notifyOwnerOnTenantCreation(tenant);
 		} else {
 
@@ -59,20 +67,35 @@ public class TenantService {
 		return tenant;
 	}
 
-	private UserProfile updateTenatRelation(UserProfile userProfile, Tenant tenant) {
+	public UserProfile updateTenatRelation(UserProfile userProfile, Tenant tenant, UserRoles userRole) {
 
-		TenantRelation tenantRelation = new TenantRelation(tenant.getName(), UserRoles.ROLE_ADMIN);
-		if (userProfile.getTenantRelations() != null) {
+		TenantRelation tenantRelation = new TenantRelation(tenant.getName(), userRole);
+		if (userProfile.getTenantRelations() != null && !isRelationAlreadyExisting(userProfile, tenant)) {
 
 			List<TenantRelation> tenantRelations = userProfile.getTenantRelations();
-			tenantRelations.add(tenantRelation); 
+			tenantRelations.add(tenantRelation);
 			userProfile.setTenantRelations(tenantRelations);
-		}else {
+		} else {
 			List<TenantRelation> tenantRelations = new ArrayList<>();
 			tenantRelations.add(tenantRelation);
 			userProfile.setTenantRelations(tenantRelations);
 		}
-		return userProfile;
+		return userProfileMongoRepository.save(userProfile);
+	}
+
+	private boolean isRelationAlreadyExisting(UserProfile userProfile, Tenant tenant) {
+
+		List<UserProfile> userProfiles = userProfileMongoRepository.findByTenantRelationsTenantName(tenant.getName());
+		return (userProfiles.contains(userProfile));
+	}
+
+	public Tenant getTenantById(String tenantId) {
+		Optional<Tenant> tenantOptional = tenantMongoRepository.findById(tenantId);
+		if (tenantOptional.isPresent()) {
+			return tenantOptional.get();
+		} else {
+			throw new ResourceNotFoundException();
+		}
 	}
 
 }

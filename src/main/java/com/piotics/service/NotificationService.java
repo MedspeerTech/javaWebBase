@@ -14,6 +14,8 @@ import com.piotics.common.utils.UtilityManager;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Notification;
+import com.piotics.model.Tenant;
+import com.piotics.model.UserProfile;
 import com.piotics.model.UserShort;
 import com.piotics.repository.NotificationMongoRepository;
 import com.piotics.repository.NotificationMongoTemplateImpl;
@@ -39,6 +41,9 @@ public class NotificationService {
 
 	@Autowired
 	NotificationMongoTemplateImpl notificationMongoTemplateImpl;
+	
+	@Autowired
+	TenantService tenantService;
 
 	public void notifyAdminsOnUserInvite(ApplicationUser applicationUser, Invitation item, String title) {
 		UserShort owner = userService.getUserShort(applicationUser.getId());
@@ -56,8 +61,7 @@ public class NotificationService {
 
 			if (!userToNotify.getId().equals(owner.getId())) {
 
-				Notification notification = new Notification(owner, userToNotify, notificationType, itemId,
-						title);
+				Notification notification = new Notification(owner, userToNotify, notificationType, itemId, title);
 				notifications.add(notification);
 				notifyTo.add(userToNotify);
 			}
@@ -82,5 +86,13 @@ public class NotificationService {
 	public void resetNewNotificationCount(ApplicationUser applicationUser) {
 
 		notificationMongoTemplateImpl.resetUserNotificationCount(applicationUser.getId());
+	}
+
+	public void notifyUserOnTenantInvitation(UserProfile userProfile, Invitation invitation) {
+		UserShort userToNotify = userService.getUserShort(userProfile.getId());
+		UserShort owner = invitation.getInvitedBY();
+		Tenant tenant = tenantService.getTenantById(invitation.getTenantId());
+		Notification notification = new Notification(owner, userToNotify, NotificationType.TENANT_INVITATION, invitation.getId(), tenant.getName());
+		notificationMongoRepository.save(notification);
 	}
 }
