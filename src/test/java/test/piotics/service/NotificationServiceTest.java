@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,7 +14,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +24,6 @@ import com.piotics.common.NotificationType;
 import com.piotics.common.TimeManager;
 import com.piotics.common.utils.UtilityManager;
 import com.piotics.model.ApplicationUser;
-import com.piotics.model.Invitation;
 import com.piotics.model.Notification;
 import com.piotics.model.UserShort;
 import com.piotics.repository.NotificationMongoRepository;
@@ -41,6 +39,7 @@ import test.piotics.builder.NotificationResourceBuilder;
 import test.piotics.builder.UserShortBuilder;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.management.*")
 @PrepareForTest({ Notification.class, NotificationService.class })
 public class NotificationServiceTest {
 
@@ -73,8 +72,6 @@ public class NotificationServiceTest {
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		notificationService = new NotificationService(notificationMongoRepository, utilityManager, userService,
-				timeManager, userProfileService, notificationMongoTemplateImpl);
 	}
 
 	@Rule
