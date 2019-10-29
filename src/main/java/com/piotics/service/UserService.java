@@ -28,7 +28,6 @@ import com.piotics.model.UserShort;
 import com.piotics.repository.UserMongoRepository;
 import com.piotics.repository.UserShortMongoRepository;
 
-
 @Service
 @Lazy
 public class UserService {
@@ -41,9 +40,6 @@ public class UserService {
 
 	@Autowired
 	BCryptPasswordUtils bCryptPasswordUtils;
-
-//	@Autowired
-//	ApplicationUserMongoRepository applicationUserMongoRepository;
 
 	@Autowired
 	HttpServletRequestUtils httpServletRequestUtils;
@@ -68,61 +64,48 @@ public class UserService {
 
 	@Autowired
 	NotificationService notificationService;
-	
-	
-	
 
 	@Value("${invite.required}")
 	public boolean inviteRequired;
 
-	public UserService(UserMongoRepository userMongoRepository, UtilityManager utilityManager,
-			BCryptPasswordUtils bCryptPasswordUtils, InvitationService invitationService, TokenService tokenService,
-			UserProfileService userProfileService, MailService mailService, UserShortMongoRepository userShortMongoRepository) {
-
-		this.userMongoRepository = userMongoRepository;
-		this.utilityManager = utilityManager;
-		this.bCryptPasswordUtils = bCryptPasswordUtils;
-		this.invitationService = invitationService;
-		this.tokenService = tokenService;
-		this.userProfileService = userProfileService;
-		this.mailService = mailService;
-		this.userShortMongoRepository = userShortMongoRepository;
-	}
-
-	public void signUp(SignUpUser signUpUser) throws Exception {
+	public void signUp(SignUpUser signUpUser) {
 
 		if (isExistingUser(signUpUser.getUsername()))
 			throw new UserException("user already exists");
 
-		if (inviteRequired && signUpUser.getToken() != null && !invitationService.isInvited(signUpUser.getUsername()))
+		if (inviteRequired && !invitationService.isInvited(signUpUser.getUsername()))
 			throw new UserException("user not invited");
 
 		proceedToSignUp(signUpUser);
-
-		return;
 	}
 
-	private void proceedToSignUp(SignUpUser signUpUser) throws Exception {
+	private void proceedToSignUp(SignUpUser signUpUser) {
 
 		String encodedPassword = bCryptPasswordUtils.encodePassword(signUpUser.getPassword());
 
-		ApplicationUser newUser = new ApplicationUser(signUpUser.getUsername(), encodedPassword, UserRoles.ROLE_USER,true);
+		ApplicationUser newUser = new ApplicationUser(signUpUser.getUsername(), encodedPassword, UserRoles.ROLE_USER,
+				true);
 		Token token = new Token();
+		Token dbToken = tokenService.getTokenFromDBWithTokenType(signUpUser.getUsername(), TokenType.INVITATION);
 
-		if (invitationService.isInvited(signUpUser.getUsername()))
-			tokenService.deleteInviteTkenByUsername(signUpUser.getUsername());
-
-		if (utilityManager.isEmail(signUpUser.getUsername())) {
-
-			if (signUpUser.getToken() == null) {
-				newUser.setEnabled(false);
-				token = tokenService.getTokenForEmailVerification(newUser);
-				mailService.sendMail(token);
+		if (invitationService.isInvited(signUpUser.getUsername())) {
+			if (signUpUser.getToken() != null && tokenService.isTokenValid(dbToken)
+					&& signUpUser.getToken().getToken().equals(dbToken.getToken())) {
+				newUser.setEnabled(true);
+				newUser = userMongoRepository.save(newUser);
 			}
+			tokenService.deleteInviteTkenByUsername(signUpUser.getUsername());
+		}
+
+		if (utilityManager.isEmail(signUpUser.getUsername()) && signUpUser.getToken() == null) {
+
+			newUser.setEnabled(false);
+			newUser = userMongoRepository.save(newUser);
+			token = tokenService.getTokenForEmailVerification(newUser);
+			mailService.sendMail(token);
 		}
 
 		newUser = userMongoRepository.save(newUser);
-		token.setUserId(newUser.getId());
 		tokenService.save(token);
 
 		UserProfile userProfile = new UserProfile(newUser.getId(), newUser.getEmail(), newUser.getPhone());
@@ -150,12 +133,14 @@ public class UserService {
 		if (!dbToken.getToken().equals(token.getToken()))
 			throw new TokenException("InvalidToken");
 
-		ApplicationUser user = userMongoRepository.findById(dbToken.getUserId()).get();
-		user.setEnabled(true);
-		userMongoRepository.save(user);
-		tokenService.deleteByUsernameAndTokenType(token.getUsername(), TokenType.EMAILVERIFICATION);
-		return;
+		Optional<ApplicationUser> appUserOptional = userMongoRepository.findById(dbToken.getUserId());
 
+		if (appUserOptional.isPresent()) {
+			ApplicationUser user = appUserOptional.get();
+			user.setEnabled(true);
+			userMongoRepository.save(user);
+			tokenService.deleteByUsernameAndTokenType(token.getUsername(), TokenType.EMAILVERIFICATION);
+		}
 	}
 
 	public void forgotPassword(String username) {
@@ -174,7 +159,6 @@ public class UserService {
 			token.setUserId(appUser.getId());
 			tokenService.save(token);
 			mailService.sendMail(token);
-			return;
 		}
 
 	}
@@ -202,13 +186,11 @@ public class UserService {
 
 	public String verifyIdToken(Authentication authentication, FirebaseToken decodedToken) {
 
-		ApplicationUser applicationUser = new ApplicationUser();
 		Optional<ApplicationUser> applicationUserOptional = userMongoRepository.findById(decodedToken.getUid());
 		String token = null;
 		if (applicationUserOptional.isPresent()) {
 
 			// user exists. generate JWT
-			applicationUser = applicationUserOptional.get();
 			token = jwtTokenProvider.generateToken(authentication);
 		} else {
 			// user not exist. create a new user with given uid
@@ -228,7 +210,11 @@ public class UserService {
 
 	public ApplicationUser getApplicationUser(String id) {
 
-		return userMongoRepository.findById(id).get();
+		Optional<ApplicationUser> applicationUserOptional = userMongoRepository.findById(id);
+		ApplicationUser applicationUser = new ApplicationUser();
+		if (applicationUserOptional.isPresent())
+			applicationUser = applicationUserOptional.get();
+		return applicationUser;
 	}
 
 	public ApplicationUser save(ApplicationUser applicationUser) {
@@ -240,18 +226,23 @@ public class UserService {
 
 		List<ApplicationUser> adminUsers = userMongoRepository.findByRole(UserRoles.ROLE_ADMIN);
 
-		List<UserShort> adminUserShortLi = new ArrayList<UserShort>();
+		List<UserShort> adminUserShortLi = new ArrayList<>();
 
 		for (ApplicationUser admin : adminUsers) {
 
-			adminUserShortLi.add(userShortMongoRepository.findById(admin.getId()).get());
+			Optional<UserShort> adminUserShortOptional = userShortMongoRepository.findById(admin.getId());
+			if (adminUserShortOptional.isPresent())
+				adminUserShortLi.add(adminUserShortOptional.get());
 		}
 
 		return adminUserShortLi;
 	}
 
 	public UserShort getUserShort(String id) {
-
-		return userShortMongoRepository.findById(id).get();
+		Optional<UserShort> userShortOptional = userShortMongoRepository.findById(id);
+		UserShort userShort = new UserShort();
+		if (userShortOptional.isPresent())
+			userShort = userShortOptional.get();
+		return userShort;
 	}
 }
