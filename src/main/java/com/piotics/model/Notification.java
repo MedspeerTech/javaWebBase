@@ -12,7 +12,7 @@ import com.google.firebase.database.annotations.NotNull;
 import com.piotics.common.NotificationType;
 import com.piotics.common.TimeManager;
 
-@Document(collection = "#{@tenantManager.getTenantId()}"+"notification")
+@Document(collection = "notification")
 public class Notification {
 
 	@Id

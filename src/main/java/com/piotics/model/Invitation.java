@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.piotics.constants.UserRoles;
 
-@Document(collection = "#{@tenantManager.getTenantId()}"+"invitation")
+@Document(collection = "invitation")
 public class Invitation {
 
 	@Id
