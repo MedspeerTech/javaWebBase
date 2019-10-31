@@ -23,10 +23,13 @@ import org.powermock.api.mockito.expectation.WithAnyArguments;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.ArgumentMatchers;
 
 import com.piotics.common.utils.UtilityManager;
+import com.piotics.constants.UserRoles;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
+import com.piotics.model.Session;
 import com.piotics.model.UserShort;
 import com.piotics.resources.StringResource;
 import com.piotics.service.AdminService;
@@ -38,6 +41,7 @@ import com.piotics.service.UserService;
 
 import test.piotics.builder.ApplicationUserBuilder;
 import test.piotics.builder.InvitationBuilder;
+import test.piotics.builder.SessionBuilder;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
@@ -84,9 +88,10 @@ public class AdminServiceTest {
 		List<Invitation> invitations = new ArrayList<>();
 		invitations.add(new InvitationBuilder().withEmail("test@123.co.in").build());
 		invitations.add(new InvitationBuilder().withEmail("test2@123.co.in").build());
-
-		ApplicationUser appUser = new ApplicationUserBuilder().build();
-
+		
+		Session session = new SessionBuilder().withId("12345256")
+				.withRole(UserRoles.ROLE_POWER_ADMIN)
+				.build();
 		List<String> strings = new ArrayList<>();
 		strings.add("test@123.co.in");
 		strings.add("test2@123.co.in");
@@ -101,10 +106,10 @@ public class AdminServiceTest {
 //			PowerMockito.when(adminServiceSpy, method(AdminService.class, "populateStringsToInvitation", ApplicationUser.class, StringResource.class))
 //             .withArguments(appUser,invitationLi)
 //             .thenReturn(invitations);
-		PowerMockito.when(utilityManager.isEmail(Mockito.anyString())).thenReturn(true);
-		PowerMockito.when(userService.getUserShort(Mockito.anyString())).thenReturn(new UserShort());
+		PowerMockito.when(utilityManager.isEmail(ArgumentMatchers.anyString())).thenReturn(true);
+		PowerMockito.when(userService.getUserShort(ArgumentMatchers.anyString())).thenReturn(new UserShort());
 
-		StringResource response = adminService.sendInvite(appUser, invitationLi);
+		StringResource response = adminService.sendInvite(session, invitationLi);
 		assertThat(response.getStrings(), is(failedLi.getStrings()));
 	}
 
@@ -118,17 +123,18 @@ public class AdminServiceTest {
 	public void inviteShouldReturn_DuplicateIdsInFailedList() throws Exception {
 		List<Invitation> invitations = new ArrayList<>();
 		invitations.add(new InvitationBuilder().withEmail("test@123.co.in").build());
-		ApplicationUser appUser = new ApplicationUserBuilder().build();
-
+		Session session = new SessionBuilder().withId("12345256")
+				.withRole(UserRoles.ROLE_POWER_ADMIN)
+				.build();
 		List<String> strings = new ArrayList<>();
 		strings.add("test@123.co.in");
 		StringResource failedLi = new StringResource();
 		failedLi.setStrings(strings);
 
-		PowerMockito.doNothing().when(notificationService, "notifyAdminsOnUserInvite", Mockito.any(), Mockito.any(),
-				Mockito.anyString());
-		PowerMockito.when(userService, "isExistingUser", Mockito.any()).thenReturn(true);
-		StringResource response = adminService.invite(appUser, invitations);
+		PowerMockito.doNothing().when(notificationService, "notifyAdminsOnUserInvite", ArgumentMatchers.any(), ArgumentMatchers.any(),
+				ArgumentMatchers.anyString());
+		PowerMockito.when(userService, "isExistingUser", ArgumentMatchers.any()).thenReturn(true);
+		StringResource response = adminService.invite(session, invitations);
 		assertThat(response.getStrings(), is(failedLi.getStrings()));
 	}	
 	

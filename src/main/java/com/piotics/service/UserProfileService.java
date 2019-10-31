@@ -82,13 +82,14 @@ public class UserProfileService {
 
 	public UserProfile changeMail(Session session, String mail){
 
+		ApplicationUser applicationUser = userService.getApplicationUser(session.getId());
 		if (!utilityManager.isEmail(mail))
 			throw new UserException("not a valid email");
 
 		if (userService.isExistingUser(mail))
 			throw new UserException("email already registered");
 
-		if (session.getEmail().equals(mail))
+		if (applicationUser.getEmail().equals(mail))
 			throw new UserException("no change found");
 
 		try {

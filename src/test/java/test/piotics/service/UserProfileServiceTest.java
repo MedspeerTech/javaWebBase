@@ -21,9 +21,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.piotics.common.TokenType;
 import com.piotics.common.utils.BCryptPasswordUtils;
 import com.piotics.common.utils.UtilityManager;
+import com.piotics.constants.UserRoles;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.PasswordResetResource;
+import com.piotics.model.Session;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
 import com.piotics.repository.UserMongoRepository;
@@ -36,6 +38,7 @@ import com.piotics.service.UserService;
 
 import test.piotics.builder.ApplicationUserBuilder;
 import test.piotics.builder.PasswordResetResourceBuilder;
+import test.piotics.builder.SessionBuilder;
 import test.piotics.builder.TokenBuilder;
 import test.piotics.builder.UserProfileBuilder;
 
@@ -121,156 +124,220 @@ public class UserProfileServiceTest {
 	@Test
 	public void changeMail_throws_Exception_if_notMailNotValid() throws Exception {
 
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
 
 		when(utilityManager.isEmail(EMAIL)).thenReturn(false);
 
 		expectedEx.expect(Exception.class);
 		expectedEx.expectMessage("not a valid email");
 
-		userProfileService.changeMail(applicationUser, EMAIL);
+		userProfileService.changeMail(session, EMAIL);
 	}
 
 	@Test
 	public void changeMail_throws_UserException_if_mailIdAlreadyRegistered() throws Exception {
 
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
 		when(utilityManager.isEmail(EMAIL)).thenReturn(true);
 		when(userService.isExistingUser(EMAIL)).thenReturn(true);
 
 		expectedEx.expect(UserException.class);
 		expectedEx.expectMessage("email already registered");
 
-		userProfileService.changeMail(applicationUser, EMAIL);
+		userProfileService.changeMail(session, EMAIL);
 	}
 
 	@Test
 	public void changeMail_throws_Exception_if_noChangeInMailId() throws Exception {
 
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().withEmail("user@test.com").build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
+		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser()
+				.withId(session.getId())
+				.withEmail("user@test.com")
+				.build();
 		when(utilityManager.isEmail(EMAIL)).thenReturn(true);
 		when(userService.isExistingUser(EMAIL)).thenReturn(false);
-
+		when(userService.getApplicationUser(session.getId())).thenReturn(applicationUser);
+		
 		expectedEx.expect(Exception.class);
 		expectedEx.expectMessage("no change found");
 
-		userProfileService.changeMail(applicationUser, EMAIL);
+		userProfileService.changeMail(session, EMAIL);
 	}
 
 	@Test
 	public void changeMail_should_sucess_if_vaildMailId_and_validMailResetTokenExists() throws Exception {
 
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
+		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser()
+				.withId(session.getId())
+				.build();
 
 		Token token = TokenBuilder.aToken().withTokenType(TokenType.MAIL_RESET).withUsername(EMAIL).build();
 
 		when(utilityManager.isEmail(EMAIL)).thenReturn(true);
 		when(userService.isExistingUser(EMAIL)).thenReturn(false);
 		when(tokenService.getTokenByUserNameAndTokenType(EMAIL, TokenType.MAIL_RESET)).thenReturn(token);
-
-		userProfileService.changeMail(applicationUser, EMAIL);
+		when(userService.getApplicationUser(session.getId())).thenReturn(applicationUser);
+		
+		userProfileService.changeMail(session, EMAIL);
 	}
 
 	@Test
 	public void changeMail_should_sucess_if_vaildMailId() throws Exception {
 
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
+		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser()
+				.withId(session.getId())
+				.build();
 
 		Token token = TokenBuilder.aToken().withTokenType(TokenType.MAIL_RESET).withUsername(EMAIL).build();
 
 		when(utilityManager.isEmail(EMAIL)).thenReturn(true);
 		when(userService.isExistingUser(EMAIL)).thenReturn(false);
 		when(tokenService.getTokenByUserNameAndTokenType(EMAIL, TokenType.MAIL_RESET)).thenReturn(null);
-		when(tokenService.getMailResetToken(applicationUser, EMAIL)).thenReturn(token);
+		when(tokenService.getMailResetToken(session, EMAIL)).thenReturn(token);
+		when(userService.getApplicationUser(session.getId())).thenReturn(applicationUser);
 		
-		userProfileService.changeMail(applicationUser, EMAIL);
+		userProfileService.changeMail(session, EMAIL);
 	}
 
 	@Test
 	public void verifyNewMail_throws_Exception_if_mailResetTokenNotExists() throws Exception {
 		
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
+		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser()
+				.withId(session.getId())
+				.withRole(session.getRole())
+				.build();
 		
 		when(tokenService.getTokenFromDbByUserIdAndTokenType(applicationUser.getId(), TokenType.MAIL_RESET)).thenReturn(null);
+		when(userService.getApplicationUser(session.getId())).thenReturn(applicationUser);
 		
 		expectedEx.expect(Exception.class);
-		expectedEx.expectMessage("");
+//		expectedEx.expectMessage("");
 		
-		userProfileService.verifyNewMail(applicationUser, "tokenString");
+		userProfileService.verifyNewMail(session, "tokenString");
 	}
 	
 	@Test
 	public void verifyNewMail_throws_TokenException_if_tokenIsNotMatichingWithDbToken() throws Exception {
 		
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
+		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser()
+				.withId(session.getId())
+				.withRole(session.getRole())
+				.build();
 		Token dbToken = TokenBuilder.aToken().build();
 			
 		when(tokenService.getTokenFromDbByUserIdAndTokenType(applicationUser.getId(), TokenType.MAIL_RESET)).thenReturn(dbToken);		
+		when(userService.getApplicationUser(session.getId())).thenReturn(applicationUser);
+		
 		expectedEx.expect(Exception.class);
 		expectedEx.expectMessage("InvalidToken");
 		
-		userProfileService.verifyNewMail(applicationUser, "abcdefges355hs28pt8501256j");
+		userProfileService.verifyNewMail(session, "abcdefges355hs28pt8501256j");
 	}
 	
 	@Test
 	public void verifyNewMail_sucess_if_validToken() throws Exception {
 		
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
+		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser()
+				.withId(session.getId())
+				.withRole(session.getRole())
+				.build();
 		Token dbToken = TokenBuilder.aToken().build();
 		
 		UserProfile userProfile = UserProfileBuilder.aUserProfile().build();
 		Optional<UserProfile> userProfileOptional = Optional.of(userProfile); 
 	
 		when(tokenService.getTokenFromDbByUserIdAndTokenType(applicationUser.getId(), TokenType.MAIL_RESET)).thenReturn(dbToken);	
-		
+		when(userService.getApplicationUser(session.getId())).thenReturn(applicationUser);
 		Mockito.when(userProfileMongoRepository.findById(Mockito.anyString())).thenReturn(userProfileOptional);
 		
-		userProfileService.verifyNewMail(applicationUser, dbToken.getToken());
+		userProfileService.verifyNewMail(session, dbToken.getToken());
 	}
 
 	@Test
 	public void changePassword_throws_Exception_if_authenticationFails() throws Exception {
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
+		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser()
+				.withId(session.getId())
+				.withRole(session.getRole())
+				.build();
 		PasswordResetResource passwordResetResource = PasswordResetResourceBuilder.aPasswordResetResource().build();
 
 		when(bCryptPasswordUtils.isMatching(passwordResetResource.getPassword(), applicationUser.getPassword()))
 				.thenReturn(false);
-
+		when(userService.getApplicationUser(session.getId())).thenReturn(applicationUser);
+		
 		expectedEx.expect(Exception.class);
 		expectedEx.expectMessage("wrong password");
 
-		userProfileService.changePassword(applicationUser, passwordResetResource);
+		userProfileService.changePassword(session, passwordResetResource);
 	}
 
 	@Test
 	public void changePassword_throws_Exception_if_newPasswordAndCurrentPasswordAreSame() throws Exception {
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
+		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser()
+				.withId(session.getId())
+				.withRole(session.getRole())
+				.build();
 		PasswordResetResource passwordResetResource = PasswordResetResourceBuilder.aPasswordResetResource().build();
 
+		when(userService.getApplicationUser(session.getId())).thenReturn(applicationUser);
 		when(bCryptPasswordUtils.isMatching(passwordResetResource.getPassword(), applicationUser.getPassword()))
 				.thenReturn(true);
-
 		when(bCryptPasswordUtils.isMatching(passwordResetResource.getNewPassword(), applicationUser.getPassword()))
 				.thenReturn(true);
 
 		expectedEx.expect(Exception.class);
 		expectedEx.expectMessage("no change found");
 
-		userProfileService.changePassword(applicationUser, passwordResetResource);
+		userProfileService.changePassword(session, passwordResetResource);
 	}
 
 	@Test
 	public void changePassword_success_if_validData() throws Exception {
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_USER)
+				.build();
+		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser()
+				.withId(session.getId())
+				.withRole(session.getRole())
+				.build();
 		PasswordResetResource passwordResetResource = PasswordResetResourceBuilder.aPasswordResetResource().build();
 
+		when(userService.getApplicationUser(session.getId())).thenReturn(applicationUser);
 		when(bCryptPasswordUtils.isMatching(passwordResetResource.getPassword(), applicationUser.getPassword()))
 				.thenReturn(true);
-
 		when(bCryptPasswordUtils.isMatching(passwordResetResource.getNewPassword(), applicationUser.getPassword()))
 				.thenReturn(false);
 
-		userProfileService.changePassword(applicationUser, passwordResetResource);
+		userProfileService.changePassword(session, passwordResetResource);
 	}
 
 }

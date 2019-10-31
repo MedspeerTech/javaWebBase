@@ -23,8 +23,10 @@ import org.springframework.data.domain.Pageable;
 import com.piotics.common.NotificationType;
 import com.piotics.common.TimeManager;
 import com.piotics.common.utils.UtilityManager;
+import com.piotics.constants.UserRoles;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Notification;
+import com.piotics.model.Session;
 import com.piotics.model.UserShort;
 import com.piotics.repository.NotificationMongoRepository;
 import com.piotics.repository.NotificationMongoTemplateImpl;
@@ -36,6 +38,7 @@ import com.piotics.service.UserService;
 import test.piotics.builder.ApplicationUserBuilder;
 import test.piotics.builder.NotificationBuilder;
 import test.piotics.builder.NotificationResourceBuilder;
+import test.piotics.builder.SessionBuilder;
 import test.piotics.builder.UserShortBuilder;
 
 @RunWith(PowerMockRunner.class)
@@ -102,7 +105,9 @@ public class NotificationServiceTest {
 	@Test
 	public void getNotificationListShouldSuccess() throws Exception {
 		
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_POWER_ADMIN)
+				.build();
 		List<Notification> notifications = new ArrayList<>();
 		int pageNo = 1;
 		Pageable pageable = new PageRequest(pageNo - 1, 10);
@@ -113,10 +118,10 @@ public class NotificationServiceTest {
 		}
 		
 		NotificationResource notificationResource = NotificationResourceBuilder.aNotificationResource().withNotifications(notifications).build();
-		when(notificationMongoRepository.findTop10ByUserToNotifyIdOrderByCreatedOnDesc(applicationUser.getId(), pageable)).thenReturn(notifications);
+		when(notificationMongoRepository.findTop10ByUserToNotifyIdOrderByCreatedOnDesc(session.getId(), pageable)).thenReturn(notifications);
 //		PowerMockito.whenNew(NotificationResource.class).withAnyArguments().thenReturn(notificationResource);
 		
-		NotificationResource responseNotificationResource = notificationService.getNotificationList(applicationUser, pageNo);
+		NotificationResource responseNotificationResource = notificationService.getNotificationList(session, pageNo);
 		
 		assertThat(notificationResource).isEqualsToByComparingFields(responseNotificationResource);
 	}
@@ -130,9 +135,10 @@ public class NotificationServiceTest {
 	
 	@Test
 	public void resetNewNotificationCountShouldSuccess() {
-		
-		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();
-		notificationService.resetNewNotificationCount(applicationUser);
+		Session session = new SessionBuilder().withId("123526")
+				.withRole(UserRoles.ROLE_POWER_ADMIN)
+				.build();
+		notificationService.resetNewNotificationCount(session);
 	}
 	
 }
