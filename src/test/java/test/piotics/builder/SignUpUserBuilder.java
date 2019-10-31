@@ -8,10 +8,7 @@ public class SignUpUserBuilder implements Builder<SignUpUser> {
 	private String username = "dijofrancis01@gmail.com";
 	private String password = "pass";
 	private Token token;
-
-	private SignUpUserBuilder() {
-	}
-
+	
 	public SignUpUser build() {
 		SignUpUser signUpUser = new SignUpUser(username, password);
 		signUpUser.setToken(token);

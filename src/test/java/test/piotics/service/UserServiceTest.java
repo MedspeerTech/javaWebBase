@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
@@ -85,6 +86,7 @@ public class UserServiceTest {
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
+		userService.inviteRequired = false;
 	}
 
 	@Rule
@@ -133,17 +135,48 @@ public class UserServiceTest {
 	}
 
 	@Test
+	public void signUpShouldThrow_UserException_if_inviteRequiredIsTrueAndUserNotInvited() {
+		userService.inviteRequired = true;
+		SignUpUser signUpUser = new SignUpUserBuilder().withPassword("pass").withUserName("test@user.com").build();
+
+		when(invitationService.isInvited(signUpUser.getUsername())).thenReturn(false);
+		expectedEx.expect(UserException.class);
+		expectedEx.expectMessage("user not invited");
+
+		userService.signUp(signUpUser);
+	}
+
+	@Test
+	public void signUpShouldSuccess_if_inviteRequiredIsTrueAndUserInvited() throws Exception {
+		userService.inviteRequired = true;
+		SignUpUser signUpUser = new SignUpUserBuilder().withPassword("pass").withUserName("test@user.com").build();
+
+		UserService userServiceSpy = PowerMockito.spy(userService);
+		when(invitationService.isInvited(signUpUser.getUsername())).thenReturn(true);
+		PowerMockito.doNothing().when(userServiceSpy,"proceedToSignUp",signUpUser);
+		expectedEx.none();
+		userServiceSpy.signUp(signUpUser);
+	}
+	
+	@Test
+	public void signUpShouldSuccess_if_inviteRequiredIsFalse() throws Exception {
+		userService.inviteRequired = false;
+		SignUpUser signUpUser = new SignUpUserBuilder().withPassword("pass").withUserName("test@user.com").build();
+		UserService userServiceSpy = PowerMockito.spy(userService);
+		PowerMockito.doNothing().when(userServiceSpy,"proceedToSignUp",signUpUser);
+		expectedEx.none();
+		userServiceSpy.signUp(signUpUser);
+	}
+
+	@Test
 	public void verifyEmailWill_throw_UserException_if_unregisteredEmail() {
 
 		Token token = TokenBuilder.aToken().but().build();
-
 		when(tokenService.getTokenFromDBWithTokenType(token.getUsername(), TokenType.EMAILVERIFICATION))
 				.thenReturn(null);
 		when(userMongoRepository.findByEmail(token.getUsername())).thenReturn(null);
-
 		expectedEx.expect(UserException.class);
 		expectedEx.expectMessage("UnRegistered");
-
 		userService.verifyEmail(token);
 	}
 
@@ -213,7 +246,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void forgetPassword_sucess_if_validTokenExists() {
+	public void forgetPassword_sucess_if_UserExists() {
 
 		Token token = TokenBuilder.aToken().but().build();
 		ApplicationUser applicationUser = ApplicationUserBuilder.anApplicationUser().build();

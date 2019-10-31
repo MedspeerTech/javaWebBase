@@ -130,6 +130,6 @@ public class AdminServiceTest {
 		PowerMockito.when(userService, "isExistingUser", Mockito.any()).thenReturn(true);
 		StringResource response = adminService.invite(appUser, invitations);
 		assertThat(response.getStrings(), is(failedLi.getStrings()));
-	}
+	}	
 	
 }
