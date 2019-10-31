@@ -5,13 +5,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.ResourceAccessException;
 
 import com.piotics.constants.UserRoles;
-import com.piotics.controller.BaseController;
-import com.piotics.model.ApplicationUser;
 import com.piotics.model.Post;
-import com.piotics.repository.PostMongoRepository;
+import com.piotics.model.Session;
 import com.piotics.service.PostService;
 
 @Component("AccessFilter")
@@ -25,33 +22,33 @@ public class AccessFilter {
 	PostService postService;
 
 	public boolean hasAccess(Authentication authentication, String userId) {
-		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
-		return (applicationUser.getId().equals(userId));
+		Session session = (Session) (authentication).getPrincipal();
+		return (session.getId().equals(userId));
 	}
 
 	public boolean hasAccessToDeletePost(Authentication authentication, String postId) {
-		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
+		Session session = (Session) (authentication).getPrincipal();
 		Post post = postService.getPost(postId);
-		return (applicationUser.getId().equals(post.getCreator().getId())
-				|| applicationUser.getRole().equals(UserRoles.ROLE_ADMIN)
-				|| applicationUser.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
+		return (session.getId().equals(post.getCreator().getId())
+				|| session.getRole().equals(UserRoles.ROLE_ADMIN)
+				|| session.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
 	}
 
 	public boolean hasAccessToEditPost(Authentication authentication, String postId) {
-		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
+		Session session = (Session) (authentication).getPrincipal();
 		Post post = postService.getPost(postId);
-		return (!applicationUser.getId().equals(post.getCreator().getId()));
+		return (!session.getId().equals(post.getCreator().getId()));
 	}
 
 	public boolean isAdmin(Authentication authentication) {
-		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
-		return (applicationUser.getRole().equals(UserRoles.ROLE_ADMIN)
-				|| applicationUser.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
+		Session session = (Session) (authentication).getPrincipal();
+		return (session.getRole().equals(UserRoles.ROLE_ADMIN)
+				|| session.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
 	}
 	
 	public boolean isPowerAdmin(Authentication authentication) {
-		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
-		return (applicationUser.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
+		Session session = (Session) (authentication).getPrincipal();
+		return (session.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
 	}
 	
 	/**
@@ -60,13 +57,13 @@ public class AccessFilter {
 	 * @return
 	 */
 	public boolean isCompanyAdmin(Authentication authentication) {
-		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
-		return (applicationUser.getRole().equals(UserRoles.ROLE_ADMIN));
+		Session session = (Session) (authentication).getPrincipal();
+		return (session.getRole().equals(UserRoles.ROLE_ADMIN));
 	}
 
 	public boolean hasTenantCreationAccess(Authentication authentication) {
-		ApplicationUser applicationUser = (ApplicationUser) (authentication).getPrincipal();
-		return (applicationUser.getRole().equals(UserRoles.ROLE_POWER_ADMIN) && tenatEnabled);
+		Session session = (Session) (authentication).getPrincipal();
+		return (session.getRole().equals(UserRoles.ROLE_POWER_ADMIN) && tenatEnabled);
 	}
 
 }

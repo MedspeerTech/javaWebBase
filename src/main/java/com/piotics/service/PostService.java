@@ -10,6 +10,7 @@ import com.piotics.common.TimeManager;
 import com.piotics.model.Activity;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Post;
+import com.piotics.model.Session;
 import com.piotics.model.UserShort;
 import com.piotics.repository.PostMongoRepository;
 import com.piotics.repository.PostMongoTemplateImpl;
@@ -32,9 +33,9 @@ public class PostService {
 	@Autowired
 	PostMongoTemplateImpl postMongoTemplateImpl;
 
-	public Activity createPost(ApplicationUser applicationUser, Post post) {
+	public Activity createPost(Session session, Post post) {
 
-		UserShort userShort = userService.getUserShort(applicationUser.getId());
+		UserShort userShort = userService.getUserShort(session.getId());
 
 		post.setCreator(userShort);
 		post.setCreatedOn(Date.from(timeManager.getCurrentTimestamp().toInstant()));

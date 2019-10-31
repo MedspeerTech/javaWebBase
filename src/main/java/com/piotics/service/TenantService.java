@@ -13,6 +13,7 @@ import com.piotics.constants.UserRoles;
 import com.piotics.exception.ResourceNotFoundException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
+import com.piotics.model.Session;
 import com.piotics.model.Tenant;
 import com.piotics.model.TenantRelation;
 import com.piotics.model.Token;
@@ -44,7 +45,7 @@ public class TenantService {
 	@Autowired
 	UserProfileMongoRepository userProfileMongoRepository;
 
-	public Tenant createTenant(ApplicationUser applicationUser, Tenant tenant) throws Exception {
+	public Tenant createTenant(Session session, Tenant tenant) throws Exception {
 
 		if (userService.isExistingUser(tenant.getOwnerEmail())) {
 
@@ -61,7 +62,7 @@ public class TenantService {
 			tenant = tenantMongoRepository.save(tenant);
 			List<Invitation> invitations = new ArrayList<>();
 			invitations.add(new Invitation(tenant.getId(), UserRoles.ROLE_ADMIN, tenant.getOwnerEmail()));
-			adminService.invite(applicationUser, invitations);
+			adminService.invite(session, invitations);
 		}
 
 		return tenant;

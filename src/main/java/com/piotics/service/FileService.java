@@ -32,6 +32,7 @@ import com.piotics.exception.ResourceNotFoundException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Conversion;
 import com.piotics.model.FileMeta;
+import com.piotics.model.Session;
 import com.piotics.repository.ConversionMongoRepository;
 import com.piotics.repository.FileMetaMongoRepository;
 
@@ -71,7 +72,7 @@ public class FileService {
 	@Value("#{'${piotics.file.types.suppoted}'.split(',')}")
 	private String[] fileTypesSupported;
 
-	public FileMeta saveFile(ApplicationUser applicationUser, MultipartFile file) throws IOException {
+	public FileMeta saveFile(Session session, MultipartFile file) throws IOException {
 
 		List<String> supportedFormats = new ArrayList<>(Arrays.asList(fileTypesSupported));
 
@@ -83,23 +84,23 @@ public class FileService {
 
 		if (isImageFile(updatedFileMeta)) {
 
-			return saveFileToDisk(applicationUser, file, imageStorageLocation);
+			return saveFileToDisk(session, file, imageStorageLocation);
 
 		} else if (isVideoFile(updatedFileMeta)) {
 
-			updatedFileMeta = saveFileToDisk(applicationUser, file, videoStorageLocation);
+			updatedFileMeta = saveFileToDisk(session, file, videoStorageLocation);
 
 		} else if (isPdfFile(updatedFileMeta)) {
 
-			return saveFileToDisk(applicationUser, file, documentStorageLocation);
+			return saveFileToDisk(session, file, documentStorageLocation);
 
 		} else if (isDoc(updatedFileMeta)) {
 
-			return saveFileToDisk(applicationUser, file, documentStorageLocation);
+			return saveFileToDisk(session, file, documentStorageLocation);
 
 		} else if (isPresentation(updatedFileMeta)) {
 
-			return saveFileToDisk(applicationUser, file, presentationsStorageLocation);
+			return saveFileToDisk(session, file, presentationsStorageLocation);
 		}
 		return updatedFileMeta;
 	}
@@ -139,7 +140,7 @@ public class FileService {
 		return contentType.equals(FileContentType.pptDocument) || contentType.equals(FileContentType.pptxDocument);
 	}
 
-	public FileMeta saveFileToDisk(ApplicationUser applicationUser, MultipartFile file, String storageLocation)
+	public FileMeta saveFileToDisk(Session session, MultipartFile file, String storageLocation)
 			throws IOException {
 
 		int year = getCurrentYear();
@@ -147,7 +148,7 @@ public class FileService {
 
 		try {
 
-			return saveToDisc(applicationUser, file, storageLocation);
+			return saveToDisc(session, file, storageLocation);
 
 		} catch (NoSuchFileException e) {
 
@@ -159,12 +160,12 @@ public class FileService {
 				generateFolderSturctureInsideMonth(storageLocationPath + year + File.separator + month);
 			}
 
-			return saveToDisc(applicationUser, file, storageLocation);
+			return saveToDisc(session, file, storageLocation);
 		}
 
 	}
 
-	private FileMeta saveToDisc(ApplicationUser applicationUser, MultipartFile file, String storageLocation)
+	private FileMeta saveToDisc(Session session, MultipartFile file, String storageLocation)
 			throws IOException {
 
 		int year = getCurrentYear();
@@ -189,7 +190,7 @@ public class FileService {
 
 			Files.write(path, bytes);
 
-			return saveFilemeta(applicationUser, "original" + fileExtention, file, folderRelativePath);
+			return saveFilemeta(session, "original" + fileExtention, file, folderRelativePath);
 		} catch (NoSuchFileException e) {
 
 			throw new NoSuchFileException(e.getMessage());
@@ -215,9 +216,9 @@ public class FileService {
 		return UUID.randomUUID().toString().replace("-", "");
 	}
 
-	public FileMeta saveFilemeta(ApplicationUser applicationUser, String fileName, MultipartFile file, String path) {
+	public FileMeta saveFilemeta(Session session, String fileName, MultipartFile file, String path) {
 
-		FileMeta fileMeta = new FileMeta(applicationUser.getId(), fileName, file.getContentType());
+		FileMeta fileMeta = new FileMeta(session.getId(), fileName, file.getContentType());
 		fileMeta.setPath(path);
 		fileMeta.setSize((double) file.getSize());
 		fileMeta.setOriginalContentType(file.getContentType());

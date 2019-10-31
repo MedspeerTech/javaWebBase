@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.piotics.model.ApplicationUser;
+import com.piotics.model.Session;
 import com.piotics.model.TenantRelation;
 import com.piotics.resources.StringResource;
 import com.piotics.resources.TenantInviteResource;
@@ -32,8 +33,8 @@ public class AdminController {
 	@PreAuthorize("@AccessFilter.isPowerAdmin(authentication)")
 	public ResponseEntity<StringResource> invite(Principal principal, @RequestBody StringResource invitationLi) {
 
-		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
-		StringResource failedList = adminService.sendInvite(applicationUser, invitationLi);
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
+		StringResource failedList = adminService.sendInvite(session, invitationLi);
 
 		return new ResponseEntity<>(failedList, HttpStatus.OK);
 	}
@@ -43,8 +44,8 @@ public class AdminController {
 	public ResponseEntity<StringResource> tenantUserInvite(Principal principal,
 			@RequestBody List<TenantInviteResource> invitationLi) {
 
-		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
-		StringResource failedList = adminService.sendTenantInvite(applicationUser, invitationLi);
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
+		StringResource failedList = adminService.sendTenantInvite(session, invitationLi);
 		return new ResponseEntity<>(failedList, HttpStatus.OK);
 	}
 

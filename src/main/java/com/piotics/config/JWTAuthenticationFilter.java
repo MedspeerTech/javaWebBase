@@ -93,6 +93,8 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		}
 
 		Claims claims = Jwts.claims().setSubject(((ApplicationUser) auth.getPrincipal()).getId());
+		claims.putIfAbsent("email", ((ApplicationUser)auth.getPrincipal()).getEmail());
+		claims.putIfAbsent("role", ((ApplicationUser)auth.getPrincipal()).getRole());
 		claims.put("scopes", Arrays.asList("ad", ""));
 		String token = Jwts.builder().setClaims(claims)
 //				.setIssuer(settings.getTokenIssuer())

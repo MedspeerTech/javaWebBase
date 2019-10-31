@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.piotics.model.Activity;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Post;
+import com.piotics.model.Session;
 import com.piotics.service.PostService;
 
 @RestController
@@ -30,8 +31,8 @@ public class PostController {
 	@PostMapping(value = "/create")
 	public ResponseEntity<Activity> createPost(Principal principal, @RequestBody Post post) {
 
-		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
-		Activity activity = postService.createPost(applicationUser, post);
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
+		Activity activity = postService.createPost(session, post);
 
 		return new ResponseEntity<>(activity, HttpStatus.OK);
 	}

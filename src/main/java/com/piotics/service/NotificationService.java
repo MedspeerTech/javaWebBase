@@ -14,6 +14,7 @@ import com.piotics.common.utils.UtilityManager;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Notification;
+import com.piotics.model.Session;
 import com.piotics.model.Tenant;
 import com.piotics.model.UserProfile;
 import com.piotics.model.UserShort;
@@ -45,8 +46,8 @@ public class NotificationService {
 	@Autowired
 	TenantService tenantService;
 
-	public void notifyAdminsOnUserInvite(ApplicationUser applicationUser, Invitation item, String title) {
-		UserShort owner = userService.getUserShort(applicationUser.getId());
+	public void notifyAdminsOnUserInvite(Session session, Invitation item, String title) {
+		UserShort owner = userService.getUserShort(session.getId());
 		List<UserShort> notifyTo = userService.getUserShortOfAdmins();
 		addNotification(owner, NotificationType.INVITATION, item.getId(), notifyTo, title);
 	}
@@ -70,11 +71,11 @@ public class NotificationService {
 		notificationMongoTemplateImpl.incrementNewNotificationCountByOneForUsersToNotify(notifyTo);
 	}
 
-	public NotificationResource getNotificationList(ApplicationUser applicationUser, int pageNo) {
+	public NotificationResource getNotificationList(Session session, int pageNo) {
 
 		Pageable pageable = new PageRequest(pageNo - 1, 10);
 		List<Notification> notifications = notificationMongoRepository
-				.findTop10ByUserToNotifyIdOrderByCreatedOnDesc(applicationUser.getId(), pageable);
+				.findTop10ByUserToNotifyIdOrderByCreatedOnDesc(session.getId(), pageable);
 
 		return new NotificationResource(notifications);
 	}
@@ -83,9 +84,9 @@ public class NotificationService {
 		notificationMongoTemplateImpl.markAsReadNotifcation(notification.getId());
 	}
 
-	public void resetNewNotificationCount(ApplicationUser applicationUser) {
+	public void resetNewNotificationCount(Session session) {
 
-		notificationMongoTemplateImpl.resetUserNotificationCount(applicationUser.getId());
+		notificationMongoTemplateImpl.resetUserNotificationCount(session.getId());
 	}
 
 	public void notifyUserOnTenantInvitation(UserProfile userProfile, Invitation invitation) {

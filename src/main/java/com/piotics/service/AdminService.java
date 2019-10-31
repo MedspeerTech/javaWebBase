@@ -13,6 +13,7 @@ import com.piotics.constants.UserRoles;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
+import com.piotics.model.Session;
 import com.piotics.model.Tenant;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
@@ -51,13 +52,13 @@ public class AdminService {
 	@Value("${tenant.enabled}")
 	boolean tenatEnabled;
 
-	public StringResource sendInvite(ApplicationUser applicationUser, StringResource invitationLi) {
+	public StringResource sendInvite(Session session, StringResource invitationLi) {
 
-		List<Invitation> invitations = populateStringsToInvitation(applicationUser, invitationLi);
-		return invite(applicationUser, invitations);
+		List<Invitation> invitations = populateStringsToInvitation(session, invitationLi);
+		return invite(session, invitations);
 	}
 
-	public StringResource invite(ApplicationUser applicationUser, List<Invitation> invitations) {
+	public StringResource invite(Session session, List<Invitation> invitations) {
 
 		List<String> failedList = new ArrayList<>();
 		String notificationTitle = "";
@@ -76,7 +77,7 @@ public class AdminService {
 					emailOrPhone = invitation.getPhone();
 					sendInvite(invitation.getPhone(), invitation);
 				}
-
+				notificationService.notifyAdminsOnUserInvite(session, invitation,emailOrPhone);
 			} catch (UserException e) {
 
 				failedList.add(emailOrPhone);
@@ -86,13 +87,13 @@ public class AdminService {
 		return new StringResource(failedList);
 	}
 
-	private List<Invitation> populateStringsToInvitation(ApplicationUser applicationUser, StringResource invitationLi) {
+	private List<Invitation> populateStringsToInvitation(Session session, StringResource invitationLi) {
 
 		List<Invitation> invitations = new ArrayList<>();
 		for (String invitedId : invitationLi.getStrings()) {
 
 			Invitation invitation = new Invitation();
-			UserShort invitedBy = userService.getUserShort(applicationUser.getId());
+			UserShort invitedBy = userService.getUserShort(session.getId());
 			invitation.setInvitedBY(invitedBy);
 			if (utilityManager.isEmail(invitedId)) {
 
@@ -124,7 +125,6 @@ public class AdminService {
 
 				invitation.setToken(token);
 				invitation = invitationService.save(invitation);
-
 			} else {
 				throw new UserException("user already invited");
 			}
@@ -149,13 +149,13 @@ public class AdminService {
 		return invitation;
 	}
 
-	public StringResource sendTenantInvite(ApplicationUser applicationUser, List<TenantInviteResource> invitationLi) {
+	public StringResource sendTenantInvite(Session session, List<TenantInviteResource> invitationLi) {
 		
-		List<Invitation> invitations = populateTenantInviteResourceToInvitation(applicationUser, invitationLi);
-		return invite(applicationUser, invitations);
+		List<Invitation> invitations = populateTenantInviteResourceToInvitation(session, invitationLi);
+		return invite(session, invitations);
 	}
 
-	private List<Invitation> populateTenantInviteResourceToInvitation(ApplicationUser applicationUser,
+	private List<Invitation> populateTenantInviteResourceToInvitation(Session session,
 			List<TenantInviteResource> invitationLi) {
 		List<Invitation> invitations = new ArrayList<>();
 		
@@ -163,7 +163,7 @@ public class AdminService {
 		for (TenantInviteResource inviteResource : invitationLi) {
 
 			Invitation invitation = new Invitation();
-			UserShort invitedBy = userService.getUserShort(applicationUser.getId());
+			UserShort invitedBy = userService.getUserShort(session.getId());
 			invitation.setInvitedBY(invitedBy);
 			invitation.setTenantId(inviteResource.getTenantId());
 			invitation.setUserRole(inviteResource.getUserRole());

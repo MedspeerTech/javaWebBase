@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import com.piotics.model.ApplicationUser;
+import com.piotics.model.Session;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -33,12 +34,8 @@ public class JwtTokenProvider {
 
 	public String generateToken(Authentication authentication) {
 
-		ApplicationUser userPrincipal = (ApplicationUser) authentication.getPrincipal();
-
-		Date now = new Date();
-		Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
-
-		return Jwts.builder().setSubject(userPrincipal.getId()).setIssuedAt(new Date())
+		Session session = (Session) authentication.getPrincipal();
+		return Jwts.builder().setSubject(session.getId()).setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
 				.signWith(SignatureAlgorithm.HS512, SECRET.getBytes()).compact();
 	}

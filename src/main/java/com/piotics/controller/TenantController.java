@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.piotics.model.ApplicationUser;
+import com.piotics.model.Session;
 import com.piotics.model.Tenant;
 import com.piotics.service.TenantService;
 
@@ -27,8 +28,8 @@ public class TenantController {
 	@PostMapping(value = "/create")
 	@PreAuthorize("@AccessFilter.hasTenantCreationAccess(authentication)")
 	public ResponseEntity<Tenant> create(Principal principal, @RequestBody Tenant tenant) throws Exception {
-		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
-		tenant = tenantService.createTenant(applicationUser,tenant);
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
+		tenant = tenantService.createTenant(session,tenant);
 		return new ResponseEntity<>(tenant, HttpStatus.OK);
 	}
 

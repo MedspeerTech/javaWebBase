@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Notification;
+import com.piotics.model.Session;
 import com.piotics.resources.NotificationResource;
 import com.piotics.service.NotificationService;
 
@@ -32,8 +33,8 @@ public class NotificationController {
 	@GetMapping(value = "/list/{pageNo}")
 	public ResponseEntity<NotificationResource> getNotificationList(Principal principal, @PathVariable int pageNo) {
 
-		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
-		NotificationResource notificationResource = notificationService.getNotificationList(applicationUser, pageNo);
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
+		NotificationResource notificationResource = notificationService.getNotificationList(session, pageNo);
 
 		return new ResponseEntity<>(notificationResource, HttpStatus.OK);
 	}
@@ -47,8 +48,8 @@ public class NotificationController {
 	
 	@PostMapping(value = "/resetCount")
 	public ResponseEntity<Notification> resetNewNotificationCount(Principal principal){	
-		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
-		notificationService.resetNewNotificationCount(applicationUser);
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
+		notificationService.resetNewNotificationCount(session);
 		return new ResponseEntity<> (HttpStatus.OK);
 	}
 }

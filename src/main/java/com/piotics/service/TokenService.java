@@ -15,6 +15,7 @@ import com.piotics.common.TokenManager;
 import com.piotics.common.TokenType;
 import com.piotics.exception.TokenException;
 import com.piotics.model.ApplicationUser;
+import com.piotics.model.Session;
 import com.piotics.model.Token;
 import com.piotics.repository.TokenMongoRepository;
 
@@ -92,10 +93,10 @@ public class TokenService {
 		return tokenManager.getTokenForPasswordReset(username);
 	}
 
-	public Token getMailResetToken(ApplicationUser appUser, String email) {
+	public Token getMailResetToken(Session session, String email) {
 		
 		Token token = tokenManager.getTokenForMailReset(email);
-		token.setUserId(appUser.getId());
+		token.setUserId(session.getId());
 		token.setTokenType(TokenType.MAIL_RESET);
 		return tokenMongoRepository.save(token);
 	}

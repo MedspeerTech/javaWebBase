@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.piotics.common.MultipartFileSender;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.FileMeta;
+import com.piotics.model.Session;
 import com.piotics.service.ConversionsService;
 import com.piotics.service.FileService;
 
@@ -39,10 +40,9 @@ public class FileController {
 	public ResponseEntity<FileMeta> upload(Principal principal, @RequestPart("file") MultipartFile file)
 			throws IOException {
 
-		ApplicationUser applicationUser = ((ApplicationUser) ((Authentication) (principal)).getPrincipal());
-		((Authentication) principal).getPrincipal();
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
 		if (!file.isEmpty()) {
-			FileMeta fileMeta = fileService.saveFile(applicationUser, file);
+			FileMeta fileMeta = fileService.saveFile(session, file);
 			return new ResponseEntity<>(fileMeta, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.FAILED_DEPENDENCY);

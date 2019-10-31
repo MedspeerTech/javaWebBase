@@ -14,6 +14,7 @@ import com.piotics.exception.TokenException;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.PasswordResetResource;
+import com.piotics.model.Session;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
 import com.piotics.repository.UserMongoRepository;
@@ -79,7 +80,7 @@ public class UserProfileService {
 		return dbUserProfile;
 	}
 
-	public UserProfile changeMail(ApplicationUser applicationUser, String mail){
+	public UserProfile changeMail(Session session, String mail){
 
 		if (!utilityManager.isEmail(mail))
 			throw new UserException("not a valid email");
@@ -87,7 +88,7 @@ public class UserProfileService {
 		if (userService.isExistingUser(mail))
 			throw new UserException("email already registered");
 
-		if (applicationUser.getEmail().equals(mail))
+		if (session.getEmail().equals(mail))
 			throw new UserException("no change found");
 
 		try {
@@ -99,7 +100,7 @@ public class UserProfileService {
 				mailService.sendMail(resetMailToken);
 			} else {
 
-				resetMailToken = tokenService.getMailResetToken(applicationUser, mail);
+				resetMailToken = tokenService.getMailResetToken(session, mail);
 				mailService.sendMail(resetMailToken);
 			}
 
@@ -112,9 +113,9 @@ public class UserProfileService {
 		return null;
 	}
 
-	public void verifyNewMail(ApplicationUser applicationUser, String token){
+	public void verifyNewMail(Session session, String token){
 
-		Token dbToken = tokenService.getTokenFromDbByUserIdAndTokenType(applicationUser.getId(), TokenType.MAIL_RESET);
+		Token dbToken = tokenService.getTokenFromDbByUserIdAndTokenType(session.getId(), TokenType.MAIL_RESET);
 
 		if (dbToken == null)
 			throw new UserException("no valid request for change mail");
@@ -123,18 +124,21 @@ public class UserProfileService {
 
 		if (!dbToken.getToken().equals(token))
 			throw new TokenException("InvalidToken");
-
+		
+		ApplicationUser applicationUser = userService.getApplicationUser(session.getId());
 		applicationUser.setEmail(dbToken.getUsername());
 		userService.save(applicationUser);
 
-		UserProfile userProfile = getProfile(applicationUser.getId());
+		UserProfile userProfile = getProfile(session.getId());
 		userProfile.setEmail(dbToken.getUsername());
 		save(userProfile);
 
 		tokenService.deleteToken(dbToken);
 	}
 
-	public void changePassword(ApplicationUser applicationUser, PasswordResetResource passwordresetResource){
+	public void changePassword(Session session, PasswordResetResource passwordresetResource){
+		
+		ApplicationUser applicationUser = userService.getApplicationUser(session.getId());
 
 		if (!bCryptPasswordUtils.isMatching(passwordresetResource.getPassword(), applicationUser.getPassword()))
 			throw new UserException("wrong password");

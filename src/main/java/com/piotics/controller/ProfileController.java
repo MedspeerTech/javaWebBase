@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.PasswordResetResource;
+import com.piotics.model.Session;
 import com.piotics.model.UserProfile;
 import com.piotics.service.UserProfileService;
 
@@ -47,16 +48,16 @@ public class ProfileController extends BaseController {
 	@PostMapping(value = "/changeMail/{mail}")
 	public ResponseEntity<UserProfile> changeMail(Principal principal, @PathVariable String mail) throws Exception {
 
-		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
-		UserProfile userProfile = userProfileService.changeMail(applicationUser, mail);
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
+		UserProfile userProfile = userProfileService.changeMail(session, mail);
 		return new ResponseEntity<>(userProfile, HttpStatus.OK);
 	}
 
 	@PostMapping(value = "/verifyNewMail/{token}")
 	public ResponseEntity <HttpStatus>verifyNewMail(Principal principal, @PathVariable String token) throws Exception {
 
-		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
-		userProfileService.verifyNewMail(applicationUser, token);
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
+		userProfileService.verifyNewMail(session, token);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
@@ -64,8 +65,8 @@ public class ProfileController extends BaseController {
 	public ResponseEntity<HttpStatus> changePassword(Principal principal,
 			@Valid @RequestBody PasswordResetResource passwordresetResource){
 
-		ApplicationUser applicationUser = (ApplicationUser) ((Authentication) (principal)).getPrincipal();
-		userProfileService.changePassword(applicationUser, passwordresetResource);
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
+		userProfileService.changePassword(session, passwordresetResource);
 		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
 

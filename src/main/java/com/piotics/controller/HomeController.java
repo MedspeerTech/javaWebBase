@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.piotics.model.ApplicationUser;
+import com.piotics.model.Session;
 import com.piotics.model.UserProfile;
 import com.piotics.resources.ResponseObj;
 import com.piotics.resources.SessionUser;
@@ -30,7 +31,7 @@ public class HomeController {
         if(principal==null){
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
-        String id = ((ApplicationUser) ((UsernamePasswordAuthenticationToken) principal).getPrincipal()).getId();
+        String id = ((Session) ((UsernamePasswordAuthenticationToken) principal).getPrincipal()).getId();
         
         SessionUser sessionUser=new SessionUser();
         sessionUser.setId(id);

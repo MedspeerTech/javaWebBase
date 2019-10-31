@@ -20,7 +20,9 @@ import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.piotics.config.BeanUtil;
+import com.piotics.constants.UserRoles;
 import com.piotics.model.ApplicationUser;
+import com.piotics.model.Session;
 import com.piotics.service.UserDetailsServiceImpl;
 
 import io.jsonwebtoken.Claims;
@@ -65,14 +67,22 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
 			if (token != null) {
 				Claims claims = Jwts.parser().setSigningKey(SECRET.getBytes()).parseClaimsJws(token).getBody();
 				String username = claims.getSubject();
+				String tenantId = claims.getId();
 
 				if (username != null) {
-					Optional<ApplicationUser> applicationUser = use.findById(username);
+					Session sessionUser = new Session(username, claims.get("email").toString(),claims.get("role").toString());
 					UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-							applicationUser.get(), null, applicationUser.get().getAuthorities());
+							sessionUser, null, sessionUser.getAuthorities());
 					SecurityContextHolder.getContext().setAuthentication(auth);
 					return auth;
 				}
+//				if (username != null) {
+//					Optional<ApplicationUser> applicationUser = use.findById(username);
+//					UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+//							applicationUser.get(), null, applicationUser.get().getAuthorities());
+//					SecurityContextHolder.getContext().setAuthentication(auth);
+//					return auth;
+//				}
 			}
 		} catch (ExpiredJwtException e) {
 			e.printStackTrace();
