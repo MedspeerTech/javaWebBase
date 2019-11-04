@@ -1,17 +1,19 @@
 package com.piotics.service;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.piotics.common.utils.UtilityManager;
 import com.piotics.constants.UserRoles;
 import com.piotics.exception.UserException;
-import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Session;
 import com.piotics.model.Tenant;
@@ -111,6 +113,9 @@ public class AdminService {
 
 	private Invitation sendInvite(String username, Invitation invitation) {
 
+		Principal principal = SecurityContextHolder.getContext().getAuthentication();
+		Session session = (Session) ((Authentication) (principal)).getPrincipal();
+		
 		if (!userService.isExistingUser(username)) {
 
 			if (!invitationService.isInvited(username)) {
@@ -131,7 +136,7 @@ public class AdminService {
 
 		} else {
 
-			if (tenatEnabled) {
+			if (tenatEnabled && session.getRole().equals(UserRoles.ROLE_ADMIN)) {
 				UserProfile userProfile = new UserProfile();
 				if (utilityManager.isEmail(username)) {
 					userProfile = userProfileService.getProfileByMail(username);
@@ -139,7 +144,7 @@ public class AdminService {
 					userProfile = userProfileService.getProfileByPhone(username);
 				}
 				Tenant tenant = tenantService.getTenantById(invitation.getTenantId());
-				tenantService.updateTenatRelation(userProfile, tenant, UserRoles.ROLE_USER);
+				tenantService.updateTenatRelation(userProfile, tenant, invitation.getUserRole());
 				notificationService.notifyUserOnTenantInvitation(userProfile,invitation);
 			} else {
 				throw new UserException("existing user");
