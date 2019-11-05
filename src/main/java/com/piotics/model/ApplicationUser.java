@@ -2,24 +2,19 @@ package com.piotics.model;
 
 import java.util.Collection;
 
-import com.piotics.common.utils.UtilityManager;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.piotics.common.MailManager;
+import com.piotics.common.utils.UtilityManager;
 import com.piotics.constants.UserRoles;
 import com.piotics.resources.SocialUser;
 
 @Document(value = "user_security")
 public class ApplicationUser implements UserDetails {
-
-
 	
 	@Id
 	private String id;
@@ -42,9 +37,10 @@ public class ApplicationUser implements UserDetails {
 	public ApplicationUser() {
 	}
 
-	public ApplicationUser(SocialUser socialUser,UserRoles role) {
+	public ApplicationUser(SocialUser socialUser,ApplicationUser applicationUser) {
 		BeanUtils.copyProperties(socialUser, this);
-		this.role =role;
+		this.role =applicationUser.getRole();
+		this.company = applicationUser.getCompany();
 	}
 
 	public ApplicationUser(String username,String password, UserRoles userRole,boolean enabled) {
@@ -57,6 +53,11 @@ public class ApplicationUser implements UserDetails {
 		this.password = password;
 		this.role = userRole;
 		this.enabled = enabled;
+	}
+
+	public ApplicationUser(SocialUser socialUser, UserRoles role) {
+		BeanUtils.copyProperties(socialUser, this);
+		this.role = role;
 	}
 
 	public String getId() {

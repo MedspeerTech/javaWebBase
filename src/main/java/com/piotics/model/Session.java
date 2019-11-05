@@ -13,7 +13,7 @@ public class Session implements UserDetails {
 
 	private String id;
 
-	private String email;
+	private String tenantId;
 	private UserRoles role;
 
 	public Session() {
@@ -24,9 +24,9 @@ public class Session implements UserDetails {
 		this.role = role;
 	}
 
-	public Session(String id,String email, String roles) {
+	public Session(String id,String tenantId, String roles) {
 		this.id = id;
-		this.email = email;
+		this.tenantId = tenantId;
 		this.role = UserRoles.valueOf(roles);
 	}
 
@@ -38,12 +38,12 @@ public class Session implements UserDetails {
 		this.id = id;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getTenantId() {
+		return tenantId;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
 	}
 
 	public UserRoles getRole() {
@@ -61,25 +61,21 @@ public class Session implements UserDetails {
 
 	@Override
 	public String getPassword() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String getUsername() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean isAccountNonExpired() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean isAccountNonLocked() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -91,7 +87,6 @@ public class Session implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

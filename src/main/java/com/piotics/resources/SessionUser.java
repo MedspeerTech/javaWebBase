@@ -1,43 +1,29 @@
 package com.piotics.resources;
 
+import com.piotics.model.TenantShort;
+import com.piotics.model.UserShort;
+
 public class SessionUser {
 
-	private String id;
-	private String username;
-	private String fileId;
-	private String email;
-	private String phone;
 	
-	public String getId() {
-		return id;
+	private UserShort userShort;
+	private TenantShort tenantShort;
+	
+	public SessionUser(UserShort userShort, TenantShort tenantShort) {
+		
+		this.userShort = userShort;
+		this.tenantShort = tenantShort;
 	}
-	public void setId(String id) {
-		this.id = id;
+	public UserShort getUserShort() {
+		return userShort;
 	}
-	public String getUsername() {
-		return username;
+	public void setUserShort(UserShort userShort) {
+		this.userShort = userShort;
 	}
-	public void setUsername(String username) {
-		this.username = username;
+	public TenantShort getTenantShort() {
+		return tenantShort;
 	}
-	public String getFileId() {
-		return fileId;
+	public void setTenantShort(TenantShort tenantShort) {
+		this.tenantShort = tenantShort;
 	}
-	public void setFileId(String fileId) {
-		this.fileId = fileId;
-	}
-	public String getEmail() {
-		return email;
-	}
-	public void setEmail(String email) {
-		this.email = email;
-	}
-	public String getPhone() {
-		return phone;
-	}
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-
-   
 }

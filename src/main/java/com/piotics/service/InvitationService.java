@@ -36,4 +36,7 @@ public class InvitationService {
 		return bool;
 	}
 
+	public Invitation getInviationByUsername(String username) {
+		return invitationMongoRepository.findByEmail(username);
+	}
 }

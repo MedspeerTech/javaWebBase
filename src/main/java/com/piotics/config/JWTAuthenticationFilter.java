@@ -25,7 +25,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.piotics.common.utils. HttpServletRequestUtils;
+import com.piotics.common.utils.HttpServletRequestUtils;
 import com.piotics.constants.MessageType;
 import com.piotics.model.ApplicationUser;
 //import medspeer.tech.common.utils.HttpServletRequestUtils;
@@ -46,6 +46,9 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
 	@Autowired
 	HttpServletRequestUtils httpServletRequestUtils;
+	
+	@Autowired
+	JwtTokenProvider jwtTokenProvider;
 
 	@Override
 	protected String obtainPassword(HttpServletRequest request) {
@@ -77,14 +80,10 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	}
 
 	@Override
-	protected void successfulAuthentication(HttpServletRequest req, 
-											HttpServletResponse res, 
-											FilterChain chain,
-											Authentication auth) throws IOException, ServletException {
+	protected void successfulAuthentication(HttpServletRequest req, HttpServletResponse res, FilterChain chain,
+			Authentication auth) throws IOException, ServletException {
 
 		String clientBrowser = httpServletRequestUtils.getClientBrowser(req);
-
-		Date currentTime = new Date();
 		boolean remember = Boolean.parseBoolean(req.getHeader("Remember"));
 		Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
 
@@ -92,14 +91,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 			expirationDate = new Date(2050, 1, 1);
 		}
 
-		Claims claims = Jwts.claims().setSubject(((ApplicationUser) auth.getPrincipal()).getId());
-		claims.putIfAbsent("email", ((ApplicationUser)auth.getPrincipal()).getEmail());
-		claims.putIfAbsent("role", ((ApplicationUser)auth.getPrincipal()).getRole());
-		claims.put("scopes", Arrays.asList("ad", ""));
-		String token = Jwts.builder().setClaims(claims)
-//				.setIssuer(settings.getTokenIssuer())
-				.setId(UUID.randomUUID().toString()).setIssuedAt(currentTime).setExpiration(expirationDate)
-				.signWith(SignatureAlgorithm.HS512, SECRET.getBytes()).compact();
+		String token = jwtTokenProvider.generateJwtToken(auth, expirationDate);
 
 		res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
 	}

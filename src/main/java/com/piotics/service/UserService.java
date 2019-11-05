@@ -20,8 +20,10 @@ import com.piotics.constants.UserRoles;
 import com.piotics.exception.TokenException;
 import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
+import com.piotics.model.Invitation;
 import com.piotics.model.PasswordReset;
 import com.piotics.model.SignUpUser;
+import com.piotics.model.Tenant;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
 import com.piotics.model.UserShort;
@@ -64,6 +66,9 @@ public class UserService {
 
 	@Autowired
 	NotificationService notificationService;
+	
+	@Autowired
+	TenantService tenantService;
 
 	@Value("${invite.required}")
 	public boolean inviteRequired;
@@ -89,6 +94,8 @@ public class UserService {
 		Token dbToken = tokenService.getTokenFromDBWithTokenType(signUpUser.getUsername(), TokenType.INVITATION);
 
 		if (invitationService.isInvited(signUpUser.getUsername())) {
+			
+			newUser = setTenantAndUserRole(signUpUser,newUser);
 			if (signUpUser.getToken() != null && tokenService.isTokenValid(dbToken)
 					&& signUpUser.getToken().getToken().equals(dbToken.getToken())) {
 				newUser.setEnabled(true);
@@ -110,6 +117,19 @@ public class UserService {
 
 		UserProfile userProfile = new UserProfile(newUser.getId(), newUser.getEmail(), newUser.getPhone());
 		userProfileService.save(userProfile);
+	}
+
+	private ApplicationUser setTenantAndUserRole(SignUpUser signUpUser,ApplicationUser appUser) {
+		Invitation invitation = new Invitation();
+		if (utilityManager.isEmail(signUpUser.getUsername())) {
+			invitation = invitationService.getInviationByUsername(signUpUser.getUsername());
+		} else {
+			invitation = invitationService.getInviationByUsername(signUpUser.getUsername());
+		}
+		appUser.setRole(invitation.getUserRole());
+		Tenant tenant = tenantService.getTenantById(invitation.getTenantId());
+		appUser.setCompany(tenant);
+		return appUser;
 	}
 
 	public boolean isExistingUser(String userName) {

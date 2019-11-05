@@ -10,4 +10,6 @@ public interface ApplicationSocialUserMongoRepository extends MongoRepository<Ap
 
 	Optional<ApplicationSocialUser> findBySocialId(String id);
 
+	ApplicationSocialUser findByEmail(String email);
+
 }

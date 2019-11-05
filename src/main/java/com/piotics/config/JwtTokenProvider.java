@@ -2,16 +2,21 @@ package com.piotics.config;
 
 import static com.piotics.config.SecurityConstants.*;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import com.piotics.constants.UserRoles;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.Session;
+import com.piotics.service.TenantService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -32,11 +37,34 @@ public class JwtTokenProvider {
 	@Value("${jwt.ExpirationInMs}")
 	private int jwtExpirationInMs;
 
+	@Value("${tenant.enabled}")
+	boolean tenatEnabled;
+
 	public String generateToken(Authentication authentication) {
 
 		Session session = (Session) authentication.getPrincipal();
 		return Jwts.builder().setSubject(session.getId()).setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+				.signWith(SignatureAlgorithm.HS512, SECRET.getBytes()).compact();
+	}
+
+	public String generateJwtToken(Authentication auth, Date expirationDate) {
+
+		if (expirationDate == null)
+			expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
+
+		Claims claims = Jwts.claims().setSubject(((ApplicationUser) auth.getPrincipal()).getId());
+		claims.putIfAbsent("role", ((ApplicationUser) auth.getPrincipal()).getRole());
+		if (tenatEnabled && claims.get("role") != UserRoles.ROLE_POWER_ADMIN) { 
+			claims.putIfAbsent("tenantId", ((ApplicationUser) auth.getPrincipal()).getCompany().getId());
+		}else {
+			claims.putIfAbsent("tenantId", "");
+		}
+		
+		claims.put("scopes", Arrays.asList("ad", ""));
+		return Jwts.builder().setClaims(claims)
+//				.setIssuer(settings.getTokenIssuer())
+				.setId(UUID.randomUUID().toString()).setIssuedAt(new Date()).setExpiration(expirationDate)
 				.signWith(SignatureAlgorithm.HS512, SECRET.getBytes()).compact();
 	}
 

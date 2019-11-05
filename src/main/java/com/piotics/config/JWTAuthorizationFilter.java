@@ -70,7 +70,8 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
 				String tenantId = claims.getId();
 
 				if (username != null) {
-					Session sessionUser = new Session(username, claims.get("email").toString(),claims.get("role").toString());
+					
+					Session sessionUser = new Session(username, claims.get("tenantId").toString(),claims.get("role").toString());
 					UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
 							sessionUser, null, sessionUser.getAuthorities());
 					SecurityContextHolder.getContext().setAuthentication(auth);
