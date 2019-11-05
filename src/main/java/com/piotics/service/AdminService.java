@@ -63,8 +63,6 @@ public class AdminService {
 	public StringResource invite(Session session, List<Invitation> invitations) {
 
 		List<String> failedList = new ArrayList<>();
-		String notificationTitle = "";
-
 		for (Invitation invitation : invitations) {
 			String emailOrPhone = null;
 			try {

@@ -1,6 +1,7 @@
 package com.piotics.config;
 
-import static com.piotics.config.SecurityConstants.*;
+import static com.piotics.config.SecurityConstants.EXPIRATION_TIME;
+import static com.piotics.config.SecurityConstants.SECRET;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -37,8 +38,9 @@ public class JwtTokenProvider {
 	@Value("${jwt.ExpirationInMs}")
 	private int jwtExpirationInMs;
 
-	@Value("${tenant.enabled}")
-	boolean tenatEnabled;
+	
+	@Autowired
+	TenantService tenantService;
 
 	public String generateToken(Authentication authentication) {
 
@@ -55,7 +57,7 @@ public class JwtTokenProvider {
 
 		Claims claims = Jwts.claims().setSubject(((ApplicationUser) auth.getPrincipal()).getId());
 		claims.putIfAbsent("role", ((ApplicationUser) auth.getPrincipal()).getRole());
-		if (tenatEnabled && claims.get("role") != UserRoles.ROLE_POWER_ADMIN) { 
+		if (tenantService.isTenantEnabled() && claims.get("role") != UserRoles.ROLE_POWER_ADMIN) { 
 			claims.putIfAbsent("tenantId", ((ApplicationUser) auth.getPrincipal()).getCompany().getId());
 		}else {
 			claims.putIfAbsent("tenantId", "");

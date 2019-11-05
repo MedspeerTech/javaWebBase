@@ -6,17 +6,14 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import com.piotics.constants.UserRoles;
 import com.piotics.exception.ResourceNotFoundException;
-import com.piotics.model.ApplicationUser;
 import com.piotics.model.Invitation;
 import com.piotics.model.Session;
 import com.piotics.model.Tenant;
 import com.piotics.model.TenantRelation;
-import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
 import com.piotics.repository.TenantMongoRepository;
 import com.piotics.repository.UserProfileMongoRepository;
@@ -45,6 +42,9 @@ public class TenantService {
 	@Autowired
 	UserProfileMongoRepository userProfileMongoRepository;
 
+	@Value("${tenant.enabled}")
+	boolean tenantEnabled;
+	
 	public Tenant createTenant(Session session, Tenant tenant) throws Exception {
 
 		if (userService.isExistingUser(tenant.getOwnerEmail())) {
@@ -97,6 +97,10 @@ public class TenantService {
 		} else {
 			throw new ResourceNotFoundException();
 		}
+	}
+
+	public boolean isTenantEnabled() {
+		return tenantEnabled;
 	}
 
 }

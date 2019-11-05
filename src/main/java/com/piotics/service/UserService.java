@@ -66,7 +66,7 @@ public class UserService {
 
 	@Autowired
 	NotificationService notificationService;
-	
+
 	@Autowired
 	TenantService tenantService;
 
@@ -81,10 +81,14 @@ public class UserService {
 		if (inviteRequired && !invitationService.isInvited(signUpUser.getUsername()))
 			throw new UserException("user not invited");
 
-		proceedToSignUp(signUpUser);
+		ApplicationUser applicationUser = proceedToSignUp(signUpUser);
+		
+		if(tenantService.isTenantEnabled()) {
+			setTenantAndUserRole(applicationUser);
+		}
 	}
 
-	private void proceedToSignUp(SignUpUser signUpUser) {
+	private ApplicationUser proceedToSignUp(SignUpUser signUpUser) {
 
 		String encodedPassword = bCryptPasswordUtils.encodePassword(signUpUser.getPassword());
 
@@ -94,8 +98,6 @@ public class UserService {
 		Token dbToken = tokenService.getTokenFromDBWithTokenType(signUpUser.getUsername(), TokenType.INVITATION);
 
 		if (invitationService.isInvited(signUpUser.getUsername())) {
-			
-			newUser = setTenantAndUserRole(signUpUser,newUser);
 			if (signUpUser.getToken() != null && tokenService.isTokenValid(dbToken)
 					&& signUpUser.getToken().getToken().equals(dbToken.getToken())) {
 				newUser.setEnabled(true);
@@ -117,19 +119,19 @@ public class UserService {
 
 		UserProfile userProfile = new UserProfile(newUser.getId(), newUser.getEmail(), newUser.getPhone());
 		userProfileService.save(userProfile);
+		
+		return newUser;
 	}
 
-	private ApplicationUser setTenantAndUserRole(SignUpUser signUpUser,ApplicationUser appUser) {
-		Invitation invitation = new Invitation();
-		if (utilityManager.isEmail(signUpUser.getUsername())) {
-			invitation = invitationService.getInviationByUsername(signUpUser.getUsername());
-		} else {
-			invitation = invitationService.getInviationByUsername(signUpUser.getUsername());
-		}
-		appUser.setRole(invitation.getUserRole());
+	private void setTenantAndUserRole(ApplicationUser applicationUser) {
+		Invitation invitation = invitationService.getInviationByUsername(applicationUser.getEmail());
+		applicationUser.setRole(invitation.getUserRole());
 		Tenant tenant = tenantService.getTenantById(invitation.getTenantId());
-		appUser.setCompany(tenant);
-		return appUser;
+		applicationUser.setCompany(tenant);
+		
+		UserProfile userProfile = userProfileService.getProfile(applicationUser.getId());
+		tenantService.updateTenatRelation(userProfile, tenant, invitation.getUserRole());
+		userMongoRepository.save(applicationUser);
 	}
 
 	public boolean isExistingUser(String userName) {
@@ -264,5 +266,9 @@ public class UserService {
 		if (userShortOptional.isPresent())
 			userShort = userShortOptional.get();
 		return userShort;
+	}
+
+	public ApplicationUser getUserByEmail(String email) {
+		return userMongoRepository.findByEmail(email);
 	}
 }

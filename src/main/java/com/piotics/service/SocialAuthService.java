@@ -40,16 +40,7 @@ public class SocialAuthService {
 	TokenService tokenService;
 
 	@Autowired
-	UserMongoRepository userMongoRepository;
-
-	@Autowired
-	InvitationMongoRepository invitationMongoRepository;
-
-	@Autowired
-	UserProfileMongoRepository userProfileMongoRepository;
-
-	@Autowired
-	TokenMongoRepository tokenMongoRepository;
+	UserProfileService userProfileService;
 
 	@Autowired
 	UserService userService;
@@ -63,9 +54,6 @@ public class SocialAuthService {
 	@Value("${invite.required}")
 	public boolean inviteRequired;
 
-	@Value("${tenant.enabled}")
-	boolean tenatEnabled;
-
 	public String socialLogin(SocialUser socialUser) {
 
 		if (!userService.isExistingUser(socialUser.getEmail())) {
@@ -75,17 +63,13 @@ public class SocialAuthService {
 			} else {
 				Invitation invitation = invitationService.getInviationByUsername(socialUser.getEmail());
 
-				if (tenatEnabled)
+				if (tenantService.isTenantEnabled())
 					return proceedTosocialLogin(socialUser, invitation);
 				else
 					return proceedTosocialLogin(socialUser, null);
 			}
 		} else {
 
-//			if(!isRegisteredSocialAccount(socialUser.getEmail())) {
-//				
-//					
-//			}
 			return proceedTosocialLogin(socialUser, null);
 		}
 
@@ -102,13 +86,10 @@ public class SocialAuthService {
 
 		if (applicationSocialUser.isPresent()) {
 			this.applicationSocialUser = applicationSocialUser.get();
-			Optional<ApplicationUser> applicationUser = userMongoRepository
-					.findById(this.applicationSocialUser.getId());
-			this.applicationUser = applicationUser.get();
-
+			this.applicationUser = userService.getApplicationUser(this.applicationSocialUser.getId());
 		} else {
 
-			this.applicationUser = userMongoRepository.findByUsername(socialUser.getEmail());
+			this.applicationUser = userService.getUserByEmail(socialUser.getEmail());
 			if (this.applicationUser == null) {
 
 				if (invitation == null)
@@ -118,26 +99,20 @@ public class SocialAuthService {
 //			createUserInfo(socialUser);
 			} else if (!(this.applicationUser.isEnabled())) {
 				this.applicationUser.setEnabled(true);
-				userMongoRepository.save(this.applicationUser);
+				userService.save(this.applicationUser);
 			}
 			ApplicationSocialUser newApplicationSocialUser = new ApplicationSocialUser(socialUser);
 			newApplicationSocialUser.setId(this.applicationUser.getId());
 			this.applicationSocialUser = applicationSocialUserMongoRepository.save(newApplicationSocialUser);
 
 			UserProfile userProfile = new UserProfile(socialUser.getEmail(), this.applicationUser.getId());
-			userProfileMongoRepository.save(userProfile);
+			userProfileService.save(userProfile);
 
 			if (invitationService.isInvited(this.applicationSocialUser.getEmail()))
 				tokenService.deleteInviteTkenByUsername(this.applicationSocialUser.getEmail());
 		}
 
-		UserDetails sessionDetails = new ApplicationUser(socialUser, applicationUser);
-		
-		UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(sessionDetails, null,
-				sessionDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(auth);
-
-		return jwtTokenProvider.generateJwtToken(auth, null);
+		return prepareJWT(socialUser, applicationUser);
 	}
 
 //	private void createUserInfo(SocialUser socialUser) {
@@ -149,17 +124,29 @@ public class SocialAuthService {
 //
 //	}
 
+	private String prepareJWT(SocialUser socialUser, ApplicationUser applicationUser) {
+		UserDetails sessionDetails = new ApplicationUser(socialUser, applicationUser);
+		UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(sessionDetails, null,
+				sessionDetails.getAuthorities());
+		SecurityContextHolder.getContext().setAuthentication(auth);
+		return jwtTokenProvider.generateJwtToken(auth, null);
+	}
+
 	private void createApplicationUser(SocialUser socialUser, UserRoles role, Invitation invitation) {
 		ApplicationUser applicationUser = new ApplicationUser(socialUser, role);
 		applicationUser.setEnabled(true);
-		if (tenatEnabled && invitation != null) {
+		if (tenantService.isTenantEnabled() && invitation != null) {
 			Tenant tenant = tenantService.getTenantById(invitation.getTenantId());
 			applicationUser.setCompany(tenant);
 			applicationUser.setRole(invitation.getUserRole());
+			this.applicationUser = userService.save(applicationUser);
+
+			UserProfile userProfile = userProfileService.getProfile(applicationUser.getId());
+			tenantService.updateTenatRelation(userProfile, tenant, invitation.getUserRole());
 		} else {
 			applicationUser.setRole(role);
+			this.applicationUser = userService.save(applicationUser);
 		}
-		this.applicationUser = userMongoRepository.save(applicationUser);
 	}
 
 	public boolean isUserSignedUp(SocialUser socialUser) {
