@@ -32,5 +32,12 @@ public class TenantController {
 		tenant = tenantService.createTenant(session,tenant);
 		return new ResponseEntity<>(tenant, HttpStatus.OK);
 	}
+	
+	@PostMapping(value = "edit")
+	@PreAuthorize("@AccessFilter.hasAdminAccessToTenant(authentication,#tenant.getId())")
+	public ResponseEntity<Tenant> edit(@RequestBody Tenant tenant){
+		tenant = tenantService.editTenant(tenant);
+		return new ResponseEntity<>(tenant,HttpStatus.OK);
+	}
 
 }

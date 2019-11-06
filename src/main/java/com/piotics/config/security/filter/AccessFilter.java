@@ -9,7 +9,9 @@ import org.springframework.stereotype.Component;
 import com.piotics.constants.UserRoles;
 import com.piotics.model.Post;
 import com.piotics.model.Session;
+import com.piotics.model.Tenant;
 import com.piotics.service.PostService;
+import com.piotics.service.TenantService;
 
 @Component("AccessFilter")
 @PropertySource("classpath:setup.properties")
@@ -21,6 +23,9 @@ public class AccessFilter {
 	@Autowired
 	PostService postService;
 
+	@Autowired
+	TenantService tenantService;
+
 	public boolean hasAccess(Authentication authentication, String userId) {
 		Session session = (Session) (authentication).getPrincipal();
 		return (session.getId().equals(userId));
@@ -29,8 +34,7 @@ public class AccessFilter {
 	public boolean hasAccessToDeletePost(Authentication authentication, String postId) {
 		Session session = (Session) (authentication).getPrincipal();
 		Post post = postService.getPost(postId);
-		return (session.getId().equals(post.getCreator().getId())
-				|| session.getRole().equals(UserRoles.ROLE_ADMIN)
+		return (session.getId().equals(post.getCreator().getId()) || session.getRole().equals(UserRoles.ROLE_ADMIN)
 				|| session.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
 	}
 
@@ -42,17 +46,17 @@ public class AccessFilter {
 
 	public boolean isAdmin(Authentication authentication) {
 		Session session = (Session) (authentication).getPrincipal();
-		return (session.getRole().equals(UserRoles.ROLE_ADMIN)
-				|| session.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
+		return (session.getRole().equals(UserRoles.ROLE_ADMIN) || session.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
 	}
-	
+
 	public boolean isPowerAdmin(Authentication authentication) {
 		Session session = (Session) (authentication).getPrincipal();
 		return (session.getRole().equals(UserRoles.ROLE_POWER_ADMIN));
 	}
-	
+
 	/**
 	 * need some changes in application user - userRole
+	 * 
 	 * @param authentication
 	 * @return
 	 */
@@ -64,6 +68,12 @@ public class AccessFilter {
 	public boolean hasTenantCreationAccess(Authentication authentication) {
 		Session session = (Session) (authentication).getPrincipal();
 		return (session.getRole().equals(UserRoles.ROLE_POWER_ADMIN) && tenatEnabled);
+	}
+
+	public boolean hasAdminAccessToTenant(Authentication authentication, String tenantId) {
+		Session session = (Session) (authentication).getPrincipal();
+		Tenant tenant = tenantService.getTenantById(tenantId);
+		return (session.getRole() == UserRoles.ROLE_POWER_ADMIN || session.getId().equals(tenant.getOwnerId()));
 	}
 
 }

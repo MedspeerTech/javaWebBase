@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.piotics.constants.UserRoles;
 import com.piotics.exception.ResourceNotFoundException;
 import com.piotics.model.Invitation;
+import com.piotics.model.Notification;
 import com.piotics.model.Session;
 import com.piotics.model.Tenant;
 import com.piotics.model.TenantRelation;
@@ -42,9 +44,12 @@ public class TenantService {
 	@Autowired
 	UserProfileMongoRepository userProfileMongoRepository;
 
+	@Autowired
+	NotificationService notificationService;
+
 	@Value("${tenant.enabled}")
 	boolean tenantEnabled;
-	
+
 	public Tenant createTenant(Session session, Tenant tenant) throws Exception {
 
 		if (userService.isExistingUser(tenant.getOwnerEmail())) {
@@ -52,9 +57,9 @@ public class TenantService {
 			UserProfile userProfile = userProfileService.getProfileByMail(tenant.getOwnerEmail());
 			tenant.setOwnerId(userProfile.getId());
 
+			tenant = tenantMongoRepository.save(tenant);
 			userProfile = updateTenatRelation(userProfile, tenant, UserRoles.ROLE_ADMIN);
 			userProfileService.save(userProfile);
-			tenantMongoRepository.save(tenant);
 
 			mailService.notifyOwnerOnTenantCreation(tenant);
 		} else {
@@ -95,12 +100,27 @@ public class TenantService {
 		if (tenantOptional.isPresent()) {
 			return tenantOptional.get();
 		} else {
-			throw new ResourceNotFoundException();
+			throw new ResourceNotFoundException("invalid tenant id");
 		}
 	}
 
 	public boolean isTenantEnabled() {
 		return tenantEnabled;
+	}
+
+	public Tenant editTenant(Tenant tenant) {
+		if (tenant.getId() != null) {
+			Optional<Tenant> tenantDBOptional = tenantMongoRepository.findById(tenant.getId());
+			if (tenantDBOptional.isPresent()) {
+				Tenant tenantDB = tenantDBOptional.get();
+				BeanUtils.copyProperties(tenant, tenantDB, "id", "fileId", "ownerId", "ownerEmail");
+				return tenantMongoRepository.save(tenantDB);
+			} else {
+				throw new ResourceNotFoundException("tenant id shoud not be null");
+			}
+		} else {
+			throw new ResourceNotFoundException("tenant id shoud not be null");
+		}
 	}
 
 }
