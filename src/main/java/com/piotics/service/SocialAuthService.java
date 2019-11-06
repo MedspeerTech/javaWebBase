@@ -74,11 +74,7 @@ public class SocialAuthService {
 		}
 
 	}
-
-	private boolean isRegisteredSocialAccount(String email) {
-		return (applicationSocialUserMongoRepository.findByEmail(email) != null);
-	}
-
+	
 	private String proceedTosocialLogin(SocialUser socialUser, Invitation invitation) {
 
 		Optional<ApplicationSocialUser> applicationSocialUser = applicationSocialUserMongoRepository
@@ -141,7 +137,9 @@ public class SocialAuthService {
 			applicationUser.setRole(invitation.getUserRole());
 			this.applicationUser = userService.save(applicationUser);
 
-			UserProfile userProfile = userProfileService.getProfile(applicationUser.getId());
+			UserProfile userProfile = userProfileService.getProfile(this.applicationUser.getId());
+			tenant.setOwnerId(this.applicationUser.getId());
+			tenantService.save(tenant);
 			tenantService.updateTenatRelation(userProfile, tenant, invitation.getUserRole());
 		} else {
 			applicationUser.setRole(role);

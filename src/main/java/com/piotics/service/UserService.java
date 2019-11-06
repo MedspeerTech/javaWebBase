@@ -127,6 +127,8 @@ public class UserService {
 		Invitation invitation = invitationService.getInviationByUsername(applicationUser.getEmail());
 		applicationUser.setRole(invitation.getUserRole());
 		Tenant tenant = tenantService.getTenantById(invitation.getTenantId());
+		tenant.setOwnerId(applicationUser.getId());
+		tenantService.save(tenant);
 		applicationUser.setCompany(tenant);
 		
 		UserProfile userProfile = userProfileService.getProfile(applicationUser.getId());

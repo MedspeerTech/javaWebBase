@@ -1,5 +1,6 @@
 package com.piotics.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
@@ -15,6 +16,7 @@ import com.piotics.exception.UserException;
 import com.piotics.model.ApplicationUser;
 import com.piotics.model.PasswordResetResource;
 import com.piotics.model.Session;
+import com.piotics.model.Tenant;
 import com.piotics.model.Token;
 import com.piotics.model.UserProfile;
 import com.piotics.repository.UserMongoRepository;
@@ -158,6 +160,10 @@ public class UserProfileService {
 
 	public UserProfile getProfileByPhone(String phone) {
 		return userProfileMongoRepository.findByPhone(phone);
+	}
+
+	public List<UserProfile> getProfileByRelationteanatName(Tenant tenant) {
+		return userProfileMongoRepository.findByTenantRelationsTenantName(tenant.getName());
 	}
 
 }

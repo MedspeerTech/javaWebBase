@@ -86,12 +86,12 @@ public class TenantService {
 			tenantRelations.add(tenantRelation);
 			userProfile.setTenantRelations(tenantRelations);
 		}
-		return userProfileMongoRepository.save(userProfile);
+		return userProfileService.save(userProfile);
 	}
 
 	private boolean isRelationAlreadyExisting(UserProfile userProfile, Tenant tenant) {
 
-		List<UserProfile> userProfiles = userProfileMongoRepository.findByTenantRelationsTenantName(tenant.getName());
+		List<UserProfile> userProfiles = userProfileService.getProfileByRelationteanatName(tenant); 
 		return (userProfiles.contains(userProfile));
 	}
 
@@ -114,13 +114,17 @@ public class TenantService {
 			if (tenantDBOptional.isPresent()) {
 				Tenant tenantDB = tenantDBOptional.get();
 				BeanUtils.copyProperties(tenant, tenantDB, "id", "fileId", "ownerId", "ownerEmail");
-				return tenantMongoRepository.save(tenantDB);
+				return save(tenantDB);
 			} else {
 				throw new ResourceNotFoundException("tenant id shoud not be null");
 			}
 		} else {
 			throw new ResourceNotFoundException("tenant id shoud not be null");
 		}
+	}
+
+	public Tenant save(Tenant tenant) {
+		return tenantMongoRepository.save(tenant);
 	}
 
 }
