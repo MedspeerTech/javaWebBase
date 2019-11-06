@@ -73,7 +73,7 @@ public class FileController {
 	}
 
 	@GetMapping(value = "/getImage/{fileId}")
-	public byte[] getImage(@PathVariable Integer fileId) {
+	public byte[] getImage(@PathVariable String fileId) {
 
 		return fileService.getImage(fileId);
 	}

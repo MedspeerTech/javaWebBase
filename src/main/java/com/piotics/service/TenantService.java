@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.piotics.constants.UserRoles;
 import com.piotics.exception.ResourceNotFoundException;
+import com.piotics.model.FileMeta;
 import com.piotics.model.Invitation;
 import com.piotics.model.Notification;
 import com.piotics.model.Session;
@@ -46,6 +47,9 @@ public class TenantService {
 
 	@Autowired
 	NotificationService notificationService;
+	
+	@Autowired
+	FileService fileService;
 
 	@Value("${tenant.enabled}")
 	boolean tenantEnabled;
@@ -125,6 +129,19 @@ public class TenantService {
 
 	public Tenant save(Tenant tenant) {
 		return tenantMongoRepository.save(tenant);
+	}
+
+	public Tenant uploadDp(Session session, String imageData, String tenantId) throws Exception {
+		
+		Optional<Tenant> tenantOptional = tenantMongoRepository.findById(tenantId);
+		if(tenantOptional.isPresent()) {
+			Tenant tenant = tenantOptional.get();
+			FileMeta fileMeta = fileService.uploadTenantDp(session,imageData);
+			tenant.setFileId(fileMeta.getId());
+			return tenantMongoRepository.save(tenant);
+		}else {
+			throw new ResourceNotFoundException("invalid tenantId");
+		}
 	}
 
 }

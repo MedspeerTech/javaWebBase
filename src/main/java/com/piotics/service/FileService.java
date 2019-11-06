@@ -1,7 +1,10 @@
 package com.piotics.service;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -15,8 +18,10 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -24,6 +29,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.itextpdf.text.pdf.PdfStructTreeController.returnType;
 import com.piotics.common.FileContentType;
 import com.piotics.constants.FileType;
 import com.piotics.exception.FileException;
@@ -68,6 +74,9 @@ public class FileService {
 
 	@Value("${piotics.storage.profile.location}")
 	String userProfileImageStorageLocation;
+
+	@Value("${piotics.storage.tenant.dp.location}")
+	String tenantDpStorageLocation;
 
 	@Value("#{'${piotics.file.types.suppoted}'.split(',')}")
 	private String[] fileTypesSupported;
@@ -140,8 +149,7 @@ public class FileService {
 		return contentType.equals(FileContentType.pptDocument) || contentType.equals(FileContentType.pptxDocument);
 	}
 
-	public FileMeta saveFileToDisk(Session session, MultipartFile file, String storageLocation)
-			throws IOException {
+	public FileMeta saveFileToDisk(Session session, MultipartFile file, String storageLocation) throws IOException {
 
 		int year = getCurrentYear();
 		String month = getCurrentMonth();
@@ -165,8 +173,7 @@ public class FileService {
 
 	}
 
-	private FileMeta saveToDisc(Session session, MultipartFile file, String storageLocation)
-			throws IOException {
+	private FileMeta saveToDisc(Session session, MultipartFile file, String storageLocation) throws IOException {
 
 		int year = getCurrentYear();
 		String month = getCurrentMonth();
@@ -297,7 +304,7 @@ public class FileService {
 		return Paths.get(fileFullPath);
 	}
 
-	public byte[] getImage(Integer fileId) {
+	public byte[] getImage(String fileId) {
 		Optional<FileMeta> ff = fileMetaMongoRepository.findById(fileId);
 		if (ff.isPresent()) {
 			FileMeta fileMeta = ff.get();
@@ -311,7 +318,7 @@ public class FileService {
 			}
 
 			try {
-				if (file!=null)
+				if (file != null)
 					return Files.readAllBytes(file.toPath());
 			} catch (IOException e) {
 				throw new ResourceNotFoundException();
@@ -388,5 +395,35 @@ public class FileService {
 
 		return Calendar.getInstance().getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
 	}
+
+	public FileMeta uploadTenantDp(Session session, String imageData) throws Exception {
+
+		int year = getCurrentYear();
+		String month = getCurrentMonth();
+		
+		String fileName = UUID.randomUUID().toString()+".png";
+        String filePath = storageLocationPath + File.separator +year + File.separator + month + File.separator + tenantDpStorageLocation + fileName;
+
+        try {
+
+            imageData = imageData.substring(imageData.indexOf(','),imageData.length());
+
+            byte[] imgByteArray = Base64.decodeBase64(imageData.getBytes());
+
+            InputStream in = new ByteArrayInputStream(imgByteArray);
+            BufferedImage bufferedImage = ImageIO.read(in);
+
+            ImageIO.write(bufferedImage, "png", new File(filePath));
+            
+            MultipartFile file =  (MultipartFile) new File(filePath);
+
+            return saveFilemeta(session, fileName, file, tenantDpStorageLocation); 
+        }catch(Exception ex){
+//            logger.error(filePath+"cannot be saved");
+        	ex.printStackTrace();
+        	throw new Exception(ex.getMessage());
+
+        }
+	}	
 
 }
