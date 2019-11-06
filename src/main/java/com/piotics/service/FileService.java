@@ -81,6 +81,9 @@ public class FileService {
 	@Value("#{'${piotics.file.types.suppoted}'.split(',')}")
 	private String[] fileTypesSupported;
 
+	@Autowired
+	TenantService tenantService;
+
 	public FileMeta saveFile(Session session, MultipartFile file) throws IOException {
 
 		List<String> supportedFormats = new ArrayList<>(Arrays.asList(fileTypesSupported));
@@ -153,19 +156,25 @@ public class FileService {
 
 		int year = getCurrentYear();
 		String month = getCurrentMonth();
-
+		String relativePath = year+File.separator+month;
+		if(tenantService.isTenantEnabled()) {
+			relativePath = session.getTenantId()+File.separator+relativePath;
+			if (!hasFolder(storageLocationPath + session.getTenantId()))
+				(new File(storageLocationPath + session.getTenantId())).mkdir();
+		}		
+		
 		try {
 
 			return saveToDisc(session, file, storageLocation);
 
 		} catch (NoSuchFileException e) {
 
-			if (!hasFolder(storageLocationPath + year))
-				(new File(storageLocationPath + year)).mkdir();
+			if (!hasFolder(storageLocationPath +session.getTenantId()+File.separator+ year))
+				(new File(storageLocationPath +session.getTenantId()+File.separator+ year)).mkdir();
 
-			if (!hasFolder(storageLocationPath + year + File.separator + month)) {
-				(new File(storageLocationPath + year + File.separator + month)).mkdir();
-				generateFolderSturctureInsideMonth(storageLocationPath + year + File.separator + month);
+			if (!hasFolder(storageLocationPath + relativePath)) {
+				(new File(storageLocationPath + relativePath)).mkdir();
+				generateFolderSturctureInsideMonth(storageLocationPath + relativePath);
 			}
 
 			return saveToDisc(session, file, storageLocation);
@@ -177,7 +186,10 @@ public class FileService {
 
 		int year = getCurrentYear();
 		String month = getCurrentMonth();
-
+		String relativePath = year+File.separator+month;
+		if(tenantService.isTenantEnabled()) {
+			relativePath = session.getTenantId()+File.separator+relativePath;
+		}
 		try {
 
 			String fileNameWithExt = file.getOriginalFilename();
@@ -185,7 +197,7 @@ public class FileService {
 			String fileName = getRandomUUID();
 			String fileExtention = fileNameWithExt.substring(fileNameWithExt.lastIndexOf('.'));
 
-			String folderRelativePath = year + File.separator + month + File.separator + storageLocation + fileName
+			String folderRelativePath = relativePath+ File.separator + storageLocation + fileName
 					+ File.separator;
 			String folderFullPath = storageLocationPath + folderRelativePath;
 			String fileFullPath = folderFullPath + "/original" + fileExtention;
@@ -211,6 +223,7 @@ public class FileService {
 		(new File(path + File.separator + presentationsStorageLocation)).mkdir();
 		(new File(path + File.separator + documentStorageLocation)).mkdir();
 		(new File(path + File.separator + userProfileImageStorageLocation)).mkdir();
+		(new File(path + File.separator + tenantDpStorageLocation)).mkdir();
 	}
 
 	private boolean hasFolder(String path) {
@@ -400,30 +413,31 @@ public class FileService {
 
 		int year = getCurrentYear();
 		String month = getCurrentMonth();
-		
-		String fileName = UUID.randomUUID().toString()+".png";
-        String filePath = storageLocationPath + File.separator +year + File.separator + month + File.separator + tenantDpStorageLocation + fileName;
 
-        try {
+		String fileName = UUID.randomUUID().toString() + ".png";
+		String filePath = storageLocationPath + File.separator + year + File.separator + month + File.separator
+				+ tenantDpStorageLocation + fileName;
 
-            imageData = imageData.substring(imageData.indexOf(','),imageData.length());
+		try {
 
-            byte[] imgByteArray = Base64.decodeBase64(imageData.getBytes());
+			imageData = imageData.substring(imageData.indexOf(','), imageData.length());
 
-            InputStream in = new ByteArrayInputStream(imgByteArray);
-            BufferedImage bufferedImage = ImageIO.read(in);
+			byte[] imgByteArray = Base64.decodeBase64(imageData.getBytes());
 
-            ImageIO.write(bufferedImage, "png", new File(filePath));
-            
-            MultipartFile file =  (MultipartFile) new File(filePath);
+			InputStream in = new ByteArrayInputStream(imgByteArray);
+			BufferedImage bufferedImage = ImageIO.read(in);
 
-            return saveFilemeta(session, fileName, file, tenantDpStorageLocation); 
-        }catch(Exception ex){
+			ImageIO.write(bufferedImage, "png", new File(filePath));
+
+			MultipartFile file = (MultipartFile) new File(filePath);
+
+			return saveFilemeta(session, fileName, file, tenantDpStorageLocation);
+		} catch (Exception ex) {
 //            logger.error(filePath+"cannot be saved");
-        	ex.printStackTrace();
-        	throw new Exception(ex.getMessage());
+			ex.printStackTrace();
+			throw new Exception(ex.getMessage());
 
-        }
-	}	
+		}
+	}
 
 }
