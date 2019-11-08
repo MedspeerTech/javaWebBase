@@ -72,10 +72,10 @@ public class UserProfileService {
 		Optional<UserProfile> userProfileOptional = userProfileMongoRepository.findById(userProfile.getId());
 		UserProfile dbUserProfile = new UserProfile();
 		if (userProfileOptional.isPresent()) {
-			userProfile = userProfileOptional.get();
+			dbUserProfile = userProfileOptional.get();
 		}
 
-		BeanUtils.copyProperties(userProfile, dbUserProfile, "email", "phone", "id");
+		BeanUtils.copyProperties(userProfile, dbUserProfile, "email", "phone", "id","tenantRelations","userRole");
 
 		dbUserProfile = userProfileMongoRepository.save(dbUserProfile);
 
