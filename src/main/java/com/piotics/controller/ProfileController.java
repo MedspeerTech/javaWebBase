@@ -46,6 +46,7 @@ public class ProfileController extends BaseController {
 	}
 
 	@PostMapping(value = "/changeMail/{mail}")
+	@PreAuthorize("@AccessFilter.hasAccess(authentication,#userProfile.getId())")
 	public ResponseEntity<UserProfile> changeMail(Principal principal, @PathVariable String mail) throws Exception {
 
 		Session session = (Session) ((Authentication) (principal)).getPrincipal();
@@ -62,6 +63,7 @@ public class ProfileController extends BaseController {
 	}
 
 	@PostMapping(value = "/changePassword")
+	@PreAuthorize("@AccessFilter.hasAccess(authentication,#userProfile.getId())")
 	public ResponseEntity<HttpStatus> changePassword(Principal principal,
 			@Valid @RequestBody PasswordResetResource passwordresetResource){
 
